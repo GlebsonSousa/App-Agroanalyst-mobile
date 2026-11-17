@@ -1,7 +1,8 @@
+# verificação após correção do tema
 adb install -r app-android/app/build/outputs/apk/debug/app-debug.apk
 adb logcat -c
 adb shell monkey -p com.example.agroanalyst -c android.intent.category.LAUNCHER 1
-sleep 15
+sleep 25
 echo "=== PROCESSO ==="
 adb shell pidof com.example.agroanalyst || echo "app NAO esta rodando"
 echo "=== CRASH ==="
