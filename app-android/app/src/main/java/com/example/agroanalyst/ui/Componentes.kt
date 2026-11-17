@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -319,4 +320,48 @@ fun SelecaoRadio(titulo: String, opcoes: List<Pair<String, String>>, selecionado
             }
         }
     }
+}
+
+@Composable
+fun MiniMapaBrasil(
+    ufs: List<com.example.agroanalyst.data.UfPoligono>,
+    valores: Map<String, Double?>,
+    cortes: List<Double>,
+    aoToque: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val vazio = MaterialTheme.colorScheme.outlineVariant
+    val contorno = MaterialTheme.colorScheme.surface
+    val cores = faixasDeCor()
+    Canvas(
+        modifier.fillMaxWidth().height(240.dp).clickable(onClickLabel = "Abrir o mapa", onClick = aoToque)
+            .semantics { contentDescription = "Mapa do Brasil colorido pela produção por estado. Toque para abrir o mapa." }
+    ) {
+        val minLon = -74.0; val maxLon = -34.0; val minLat = -34.0; val maxLat = 5.5
+        val escalaX = 0.97
+        val largura = (maxLon - minLon) * escalaX
+        val altura = maxLat - minLat
+        val k = minOf(size.width / largura, size.height / altura).toFloat()
+        val dx = (size.width - (largura * k).toFloat()) / 2f
+        fun x(lon: Double) = dx + ((lon - minLon) * escalaX * k).toFloat()
+        fun y(lat: Double) = ((maxLat - lat) * k).toFloat()
+        ufs.forEach { uf ->
+            val faixa = faixaDe(valores[uf.codigo], cortes)
+            val cor = if (faixa < 0) vazio else cores[faixa]
+            uf.aneis.forEach { anel ->
+                val caminho = Path()
+                anel.forEachIndexed { i, (lon, lat) -> if (i == 0) caminho.moveTo(x(lon), y(lat)) else caminho.lineTo(x(lon), y(lat)) }
+                caminho.close()
+                drawPath(caminho, cor)
+                drawPath(caminho, contorno, style = Stroke(0.75.dp.toPx()))
+            }
+        }
+    }
+}
+
+@Composable
+fun faixasDeCor(): List<Color> {
+    val de = MaterialTheme.colorScheme.surfaceVariant
+    val ate = MaterialTheme.colorScheme.primary
+    return (0 until 5).map { androidx.compose.ui.graphics.lerp(de, ate, it / 4f) }
 }

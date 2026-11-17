@@ -4,13 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.agroanalyst.ui.Amostra
+import com.example.agroanalyst.data.Repositorio
 import com.example.agroanalyst.ui.theme.AgroTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { AgroTheme { Amostra() } }
+        Repositorio.iniciar(applicationContext.resources, packageName)
+        setContent { AgroTheme { AppAgro() } }
     }
 }
