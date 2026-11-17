@@ -15,6 +15,11 @@ import java.util.Locale
 
 val CULTURAS = listOf("soja" to "Soja", "milho" to "Milho", "cafe" to "Café", "algodao" to "Algodão", "trigo" to "Trigo")
 
+fun mesclarPrecos(atuais: List<PrecoDto>, novos: List<PrecoDto>): List<PrecoDto> {
+    val porCultura = atuais.associateBy { it.cultura } + novos.associateBy { it.cultura }
+    return CULTURAS.mapNotNull { porCultura[it.first] }
+}
+
 class InicioViewModel : OperacaoViewModel() {
     var precos by mutableStateOf<List<PrecoDto>>(emptyList())
         private set
@@ -76,7 +81,7 @@ class InicioViewModel : OperacaoViewModel() {
             val precosNovos = p.await()
             val climaNovo = cl.await()
             val culturaOk = cu.await()
-            precosNovos?.takeIf { it.isNotEmpty() }?.let { precos = it }
+            precosNovos?.takeIf { it.isNotEmpty() }?.let { precos = mesclarPrecos(precos, it) }
             climaNovo?.let { clima = it }
             if (precosNovos == null && climaNovo == null && !culturaOk) mensagem = "Sem conexão com o servidor. Mostrando os últimos dados salvos."
             else rotuloDados = "atualizado às ${SimpleDateFormat("HH:mm", Locale("pt", "BR")).format(Date())}"

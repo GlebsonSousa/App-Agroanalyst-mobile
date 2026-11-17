@@ -62,7 +62,10 @@ app.post('/usuarios/login', wrap(async (req, res) => {
 }));
 
 // ----- públicos -----
-app.get('/publico/precos', wrap(async (_, res) => res.json(await listarPrecos(db))));
+app.get('/publico/precos', wrap(async (_, res) => {
+  atualizarPrecos(db).catch(() => {});
+  res.json(await listarPrecos(db));
+}));
 
 app.get('/publico/precos/status', wrap(async (_, res) => {
   const s = (await db.collection('parametros').findOne({ _id: 'precos' })) ?? {};

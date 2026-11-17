@@ -28,7 +28,7 @@ class MercadoViewModel : OperacaoViewModel() {
 
     fun atualizar() = executar {
         val novos = Repositorio.precos()
-        if (novos.isNotEmpty()) precos = novos
+        if (novos.isNotEmpty()) precos = mesclarPrecos(precos, novos)
     }
 
     fun alternar(cultura: String) {
