@@ -169,11 +169,11 @@ fun EstadoDaTela(carregando: Boolean, demorando: Boolean, mensagem: String?, aoT
 }
 
 @Composable
-fun ChipCultura(texto: String, selecionado: Boolean, aoClicar: () -> Unit) {
+fun ChipCultura(texto: String, selecionado: Boolean, aoClicar: () -> Unit, papel: Role = Role.RadioButton) {
     val cor = if (selecionado) MaterialTheme.colorScheme.primary else Color.Transparent
     Box(
         Modifier.heightIn(min = 48.dp)
-            .selectable(selected = selecionado, onClick = aoClicar, role = Role.RadioButton)
+            .selectable(selected = selecionado, onClick = aoClicar, role = papel)
             .padding(vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
