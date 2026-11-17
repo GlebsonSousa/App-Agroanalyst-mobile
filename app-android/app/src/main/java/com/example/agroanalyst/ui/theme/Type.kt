@@ -5,7 +5,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.example.agroanalyst.R
 
@@ -18,7 +17,8 @@ val Outfit = FontFamily(
 
 private fun estilo(tam: Int, alt: Int, peso: FontWeight, tracking: Boolean = false) = TextStyle(
     fontFamily = Outfit, fontSize = tam.sp, lineHeight = alt.sp, fontWeight = peso,
-    letterSpacing = if (tracking) (-0.02).em else 0.em
+    // sp em tudo: o campo de texto faz lerp com estilos em sp, e misturar com em derruba o app
+    letterSpacing = if (tracking) (-0.02f * tam).sp else 0.sp
 )
 
 val Tipografia = Typography(
