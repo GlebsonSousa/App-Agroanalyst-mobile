@@ -30,3 +30,9 @@ jobs:
           api-level: 34
           arch: x86_64
           script: bash .github/diag.sh
+      - name: Guardar capturas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas
+          path: shots/
