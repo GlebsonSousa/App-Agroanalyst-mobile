@@ -167,6 +167,10 @@ app.patch('/vendas/:id/status', auth, wrap(async (req, res) => {
   v ? res.json(vendaDto(v)) : erro(res, 404, 'Venda não encontrada');
 }));
 
+// Baixa o APK mais recente (publicado na Release do GitHub pelo workflow). APK_URL permite trocar o destino.
+const APK_URL = process.env.APK_URL || 'https://github.com/GlebsonSousa/app-agroanalyst-mobile/releases/latest/download/app-agro.apk';
+app.get('/download', (_, res) => res.redirect(302, APK_URL));
+
 app.use((_, res) => erro(res, 404, 'Rota não encontrada'));
 
 // ---------- subida + seed ----------

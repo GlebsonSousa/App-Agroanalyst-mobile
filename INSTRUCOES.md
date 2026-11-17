@@ -10,12 +10,20 @@ App Android nativo (Kotlin + Jetpack Compose) que reúne duas frentes: **anális
 `https://agroanalyst-api.onrender.com/` _(ajuste se o nome do serviço no Render for outro e atualize `BASE_URL` em `ApiClient.kt`)_.
 **Atenção:** o servidor gratuito do Render hiberna. **A primeira chamada pode levar até um minuto.** O app mostra "Acordando o servidor…" após 5 s e aguarda; abrir a tela de login já acorda os dois serviços em paralelo.
 
+**Baixar o APK:** acesse `https://agroanalyst-api.onrender.com/download` no celular Android, baixe e instale (permita "instalar apps desconhecidos"). O APK é gerado automaticamente pelo GitHub Actions a cada alteração em `app-android/` e fica na aba *Releases*.
+
 ## 3. Usuário de teste
 Cadastre antes de entregar e preencha aqui: e-mail `____` · senha `____`.
 
 ## 4. Como rodar
 1. Android Studio (versão recente) → *Open* → pasta `app-android/`.
 2. Aguardar o *Gradle Sync*. 3. Executar em emulador com **API 24 ou superior**.
+
+## 4.1 Publicar na Render
+1. Atlas: criar cluster gratuito, usuário de banco e liberar `0.0.0.0/0` em *Network Access*.
+2. Render: *New → Blueprint* apontando para este repositório (usa o `render.yaml`) ou *Web Service* com *Root Directory* `api`. Nome do serviço: `agroanalyst-api`.
+3. Variável `MONGODB_URI` com a string do Atlas (o `JWT_SECRET` é gerado sozinho).
+4. Se o endereço não for `agroanalyst-api.onrender.com`, ajuste `BASE_URL` em `ApiClient.kt`; o Actions gera um APK novo.
 
 ## 5. Apontar para uma API local
 - `ApiClient.kt`: trocar `BASE_URL` por `http://10.0.2.2:3000/`.
@@ -53,6 +61,7 @@ Cadastre antes de entregar e preencha aqui: e-mail `____` · senha `____`.
 ## 8. Limitações assumidas
 - Distância **estimada** (Haversine × 1,3), não rota real; "Ver rota no mapa" abre o app de mapas.
 - O JWT **não é persistido**: fechar o app exige novo login (proposital).
+- O app é Android; não há versão para iPhone.
 - Sem modo offline. Só tema claro.
 - Parâmetros de frete ferroviário/hidroviário, fator de safra mensal e o preço de referência dos destinos são valores de referência (ver `api/frete.js` e o seed em `api/server.js`); o rodoviário bate com o caso de teste (R$ 47.985,60).
 - A geocodificação reversa (Nominatim) não foi implementada; o contexto do resultado usa a cidade devolvida pelo meteoserver.
