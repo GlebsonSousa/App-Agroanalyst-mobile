@@ -64,6 +64,11 @@ app.post('/usuarios/login', wrap(async (req, res) => {
 // ----- públicos -----
 app.get('/publico/precos', wrap(async (_, res) => res.json(await listarPrecos(db))));
 
+app.get('/publico/precos/status', wrap(async (_, res) => {
+  const s = (await db.collection('parametros').findOne({ _id: 'precos' })) ?? {};
+  res.json({ stale: s.stale ?? {}, tentativa: s.tentativa ?? {}, erro: s.erro ?? {} });
+}));
+
 app.get('/publico/precos/:cultura/serie', wrap(async (req, res) => {
   if (!PRODUTOS[req.params.cultura]) return erro(res, 404, 'Cultura não encontrada');
   const dias = Math.min(Math.max(parseInt(req.query.dias, 10) || 30, 1), 90);
@@ -75,24 +80,24 @@ const culturaValida = (req, res) => {
   erro(res, 400, `Informe cultura: ${Object.keys(PRODUTOS).join(', ')}`);
   return false;
 };
-const falhaExterna = (res) => erro(res, 502, 'Fonte de dados indisponível no momento');
+const falhaExterna = (res, e) => res.status(502).json({ mensagem: 'Fonte de dados indisponível no momento', detalhe: e?.cause?.code ?? e?.message });
 
 app.get('/publico/producao', wrap(async (req, res) => {
   if (!culturaValida(req, res)) return;
   if ((req.query.nivel ?? 'uf') !== 'uf') return erro(res, 400, 'Nível suportado: uf');
-  try { res.json(await producaoUf(db, req.query.cultura)); } catch { falhaExterna(res); }
+  try { res.json(await producaoUf(db, req.query.cultura)); } catch (e) { falhaExterna(res, e); }
 }));
 
 app.get('/publico/producao/top', wrap(async (req, res) => {
   if (!culturaValida(req, res)) return;
   const n = Math.min(Math.max(parseInt(req.query.n, 10) || 5, 1), 20);
-  try { res.json(await producaoTop(db, req.query.cultura, n)); } catch { falhaExterna(res); }
+  try { res.json(await producaoTop(db, req.query.cultura, n)); } catch (e) { falhaExterna(res, e); }
 }));
 
 app.get('/publico/clima', wrap(async (req, res) => {
   const lat = Number(req.query.lat), lon = Number(req.query.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return erro(res, 400, 'Coordenada inválida');
-  try { res.json(await clima(lat, lon)); } catch { falhaExterna(res); }
+  try { res.json(await clima(lat, lon)); } catch (e) { falhaExterna(res, e); }
 }));
 
 app.get('/publico/pracas', wrap(async (_, res) => {

@@ -40,7 +40,7 @@ async function baixar(pagina) {
 async function atualizarPrecos(db, { forcar = false } = {}) {
   const status = db.collection('parametros');
   const precos = db.collection('precos');
-  const atual = (await status.findOne({ _id: 'precos' })) ?? { _id: 'precos', stale: {}, tentativa: {} };
+  const atual = (await status.findOne({ _id: 'precos' })) ?? { _id: 'precos', stale: {}, tentativa: {}, erro: {} };
   const resultado = {};
   for (const [cultura, produto] of Object.entries(PRODUTOS)) {
     const ultima = atual.tentativa[cultura] ? new Date(atual.tentativa[cultura]).getTime() : 0;
@@ -57,9 +57,11 @@ async function atualizarPrecos(db, { forcar = false } = {}) {
         );
       }
       atual.stale[cultura] = false;
+      atual.erro = { ...atual.erro, [cultura]: null };
       resultado[cultura] = `${linhas.length} linhas`;
     } catch (e) {
       atual.stale[cultura] = true;
+      atual.erro = { ...atual.erro, [cultura]: `${e.message} ${e.cause?.code ?? ''}`.trim() };
       resultado[cultura] = `falhou: ${e.message}`;
     }
   }
