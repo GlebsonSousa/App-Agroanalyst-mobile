@@ -28,4 +28,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp app-android/app/build/outputs/apk/debug/app-debug.apk app-agro.apk
-          gh release create "v${{ github.run_number }}" app-agro.apk --title "versão ${{ github.run_number }}" --notes "APK do app AgroAnalyst Mobile" --latest
+          gh release create "v${{ github.run_number }}" app-agro.apk --title "versão ${{ github.run_number }}" --notes "APK do app AgroAnalyst Mobile" --latest=false
