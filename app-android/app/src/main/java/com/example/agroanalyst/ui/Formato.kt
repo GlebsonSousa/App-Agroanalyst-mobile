@@ -44,3 +44,8 @@ fun String.diaSemana(): String = try {
     val d = java.text.SimpleDateFormat("yyyy-MM-dd", Locale("pt", "BR")).parse(this)
     java.text.SimpleDateFormat("EEE", Locale("pt", "BR")).format(d!!).replace(".", "")
 } catch (e: Exception) { this }
+
+fun culturaDoMercado(nome: String): String? {
+    val n = java.text.Normalizer.normalize(nome.lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}"), "")
+    return listOf("soja", "milho", "cafe", "algodao", "trigo").firstOrNull { n.startsWith(it) }
+}
