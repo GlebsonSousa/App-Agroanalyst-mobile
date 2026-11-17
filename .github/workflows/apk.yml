@@ -22,7 +22,7 @@ jobs:
         working-directory: app-android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon
       - name: Publicar Release
         env:
           GH_TOKEN: ${{ github.token }}

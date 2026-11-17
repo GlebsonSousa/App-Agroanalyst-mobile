@@ -75,7 +75,7 @@ fun InicioTela(
             item {
                 LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(CULTURAS, key = { it.first }) { (id, rotulo) ->
-                        ChipCultura(rotulo, id == cultura) { vm.selecionarCultura(id) }
+                        ChipCultura(rotulo, id == cultura, aoClicar = { vm.selecionarCultura(id) })
                     }
                 }
             }
