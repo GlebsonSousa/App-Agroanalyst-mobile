@@ -2,7 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
-    id("org.jetbrains.kotlin.plugin.serialization") // rotas tipadas (@Serializable)
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.agroanalyst"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
     }
     buildTypes { release { isMinifyEnabled = false } }
     compileOptions {
@@ -31,7 +31,6 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0")
     implementation("androidx.navigation:navigation-compose:2.9.0")
@@ -42,4 +41,5 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
 }
