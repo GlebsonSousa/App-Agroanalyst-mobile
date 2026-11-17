@@ -11,6 +11,7 @@ const PRODUTOS = {
 const FONTE = 'CEPEA/ESALQ';
 const AGENTE = 'AgroAnalystMobile/2.0 (projeto academico Fatec Maua)';
 const SEIS_HORAS = 6 * 60 * 60 * 1000;
+const QUINZE_MINUTOS = 15 * 60 * 1000;
 
 const numero = (t) => Number(t.replace(/\./g, '').replace(',', '.').replace('%', ''));
 
@@ -44,7 +45,8 @@ async function atualizarPrecos(db, { forcar = false } = {}) {
   const resultado = {};
   for (const [cultura, produto] of Object.entries(PRODUTOS)) {
     const ultima = atual.tentativa[cultura] ? new Date(atual.tentativa[cultura]).getTime() : 0;
-    if (!forcar && Date.now() - ultima < SEIS_HORAS) { resultado[cultura] = 'ignorado'; continue; }
+    const espera = atual.stale[cultura] === true ? QUINZE_MINUTOS : SEIS_HORAS;
+    if (!forcar && Date.now() - ultima < espera) { resultado[cultura] = 'ignorado'; continue; }
     atual.tentativa[cultura] = new Date().toISOString();
     try {
       const linhas = parsearIndicador(await baixar(produto.pagina));

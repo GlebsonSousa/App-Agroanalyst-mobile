@@ -1,5 +1,9 @@
 # AgroAnalyst Mobile
 
-- `app-android/` — app Android (Kotlin, Compose). Abrir no Android Studio.
-- `api/` — API Node + Express + MongoDB (Render). Variáveis: `MONGODB_URI`, `JWT_SECRET` (ver `api/.env.example`). No Atlas, liberar `0.0.0.0/0` na allowlist.
-- `INSTRUCOES.md` — uso e funcionalidades.
+App Android nativo (Kotlin, Jetpack Compose) e API Node.js que o alimenta.
+
+- `app-android/`: aplicativo. Abrir no Android Studio.
+- `api/`: API Express + MongoDB, publicada na Render.
+- `INSTRUCOES.md`: uso, telas e fontes de dados.
+
+Autor: Glebson Sousa

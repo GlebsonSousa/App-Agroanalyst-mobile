@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: agroanalyst-api
+    name: app-agroanalyst-mobile
     runtime: node
     rootDir: api
     plan: free
