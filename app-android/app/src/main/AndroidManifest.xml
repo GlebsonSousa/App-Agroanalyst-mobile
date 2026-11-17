@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- GPS opcional: sem isso o app sumiria da loja em aparelhos sem GPS -->
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+
+    <!-- Obrigatório desde o Android 11 para resolveActivity enxergar mapas e compartilhamento -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:label="AgroAnalyst"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.AgroAnalyst">
+        <!-- Para API local em HTTP (10.0.2.2) acrescente android:usesCleartextTraffic="true" na tag application -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
