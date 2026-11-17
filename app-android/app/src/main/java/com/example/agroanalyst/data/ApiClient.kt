@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
  */
 object ApiClient {
     // Local: "http://10.0.2.2:3000/" (exige usesCleartextTraffic no Manifest).
-    const val BASE_URL = "https://agroanalyst-api.onrender.com/"
+    const val BASE_URL = "https://app-agroanalyst-mobile.onrender.com/"
     const val BASE_URL_METEO = "https://meteoserver-stfv.onrender.com/"
 
     // serializeNulls: fotoId = null precisa chegar ao servidor ("remover a foto").

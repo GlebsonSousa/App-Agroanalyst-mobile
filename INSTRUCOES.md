@@ -7,10 +7,10 @@ Demais integrantes: ______________________
 App Android nativo (Kotlin + Jetpack Compose) que reúne duas frentes: **análise de solo** de um ponto (lado AgroAnalyst, consumindo o meteoserver) e **plantios, frete e vendas** (lado AgroLogística, regras de frete portadas para a API própria). O usuário cadastra-se, analisa um ponto por GPS ou coordenada, salva plantios com foto, calcula o frete até uma praça e registra a venda.
 
 ## 2. API publicada
-`https://agroanalyst-api.onrender.com/` _(ajuste se o nome do serviço no Render for outro e atualize `BASE_URL` em `ApiClient.kt`)_.
+`https://app-agroanalyst-mobile.onrender.com/` _(ajuste se o nome do serviço no Render for outro e atualize `BASE_URL` em `ApiClient.kt`)_.
 **Atenção:** o servidor gratuito do Render hiberna. **A primeira chamada pode levar até um minuto.** O app mostra "Acordando o servidor…" após 5 s e aguarda; abrir a tela de login já acorda os dois serviços em paralelo.
 
-**Baixar o APK:** acesse `https://agroanalyst-api.onrender.com/download` no celular Android, baixe e instale (permita "instalar apps desconhecidos"). O APK é gerado automaticamente pelo GitHub Actions a cada alteração em `app-android/` e fica na aba *Releases*.
+**Baixar o APK:** acesse `https://app-agroanalyst-mobile.onrender.com/download` no celular Android, baixe e instale (permita "instalar apps desconhecidos"). O APK é gerado automaticamente pelo GitHub Actions a cada alteração em `app-android/` e fica na aba *Releases*.
 
 ## 3. Usuário de teste
 Cadastre antes de entregar e preencha aqui: e-mail `____` · senha `____`.
