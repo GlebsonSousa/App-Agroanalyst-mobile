@@ -31,7 +31,7 @@ function parsearIndicador(html) {
 
 async function baixar(pagina) {
   const r = await fetch(`https://www.cepea.org.br/br/indicador/${pagina}.aspx`, {
-    headers: { 'User-Agent': AGENTE },
+    headers: { 'User-Agent': AGENTE, Accept: 'text/html,application/xhtml+xml', 'Accept-Language': 'pt-BR,pt;q=0.9' },
     signal: AbortSignal.timeout(20000)
   });
   if (!r.ok) throw new Error(`CEPEA ${pagina}: HTTP ${r.status}`);
