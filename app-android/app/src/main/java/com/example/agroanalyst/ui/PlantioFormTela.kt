@@ -18,10 +18,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.agroanalyst.data.ApiClient
+import com.example.agroanalyst.viewmodel.BuscaViewModel
 import com.example.agroanalyst.viewmodel.PlantiosViewModel
 
 @Composable
-fun PlantioFormTela(vm: PlantiosViewModel, id: String?, aoVoltar: () -> Unit, aoSalvar: () -> Unit) {
+fun PlantioFormTela(vm: PlantiosViewModel, busca: BuscaViewModel, id: String?, aoVoltar: () -> Unit, aoSalvar: () -> Unit) {
     val context = LocalContext.current
     val r = vm.rascunho
     LaunchedEffect(id) { if (id != null) vm.abrirEdicao(id) }
@@ -47,8 +48,9 @@ fun PlantioFormTela(vm: PlantiosViewModel, id: String?, aoVoltar: () -> Unit, ao
             CampoTexto(r.cultura, { vm.atualizarRascunho(r.copy(cultura = it)) }, "Cultura")
             CampoTexto(r.areaHa, { vm.atualizarRascunho(r.copy(areaHa = it)) }, "Área (ha)", tipo = KeyboardType.Decimal)
             CampoTexto(r.produtividade, { vm.atualizarRascunho(r.copy(produtividade = it)) }, "Produtividade (sacas/ha)", tipo = KeyboardType.Decimal)
-            CampoTexto(r.lat, { vm.atualizarRascunho(r.copy(lat = it)) }, "Latitude", tipo = KeyboardType.Decimal)
-            CampoTexto(r.lon, { vm.atualizarRascunho(r.copy(lon = it)) }, "Longitude", tipo = KeyboardType.Decimal)
+            SeletorLocal("plantio", "Local do plantio", busca, r.lat, r.lon, r.local) { a, o, n ->
+                vm.atualizarRascunho(vm.rascunho.copy(lat = a, lon = o, local = n))
+            }
 
             EstadoDaTela(vm.carregando, vm.demorando, vm.mensagem)
             BotaoPrincipal("Salvar", { vm.salvar(context.contentResolver, aoSalvar) }, carregando = vm.carregando)

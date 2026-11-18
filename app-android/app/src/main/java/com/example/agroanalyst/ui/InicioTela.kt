@@ -10,9 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.agroanalyst.viewmodel.BuscaViewModel
 import com.example.agroanalyst.viewmodel.CULTURAS
 import com.example.agroanalyst.viewmodel.InicioViewModel
 
@@ -20,6 +25,7 @@ import com.example.agroanalyst.viewmodel.InicioViewModel
 @Composable
 fun InicioTela(
     vm: InicioViewModel,
+    busca: BuscaViewModel,
     nome: String?,
     aoEntrar: () -> Unit,
     aoSair: () -> Unit,
@@ -29,6 +35,7 @@ fun InicioTela(
 ) {
     LaunchedEffect(Unit) { vm.iniciar() }
     val posicionador = rememberPosicionador { lat, lon -> vm.usarPosicao(lat, lon) }
+    var escolhendoCidade by rememberSaveable { mutableStateOf(false) }
     val cultura = vm.cultura
     val nomeCultura = CULTURAS.first { it.first == cultura }.second
     val producao = vm.producao[cultura].orEmpty()
@@ -100,7 +107,16 @@ fun InicioTela(
                         }
                     }
                     Spacer(Modifier.height(8.dp))
-                    TextButton(colors = CoresTexto, onClick = posicionador.solicitar, modifier = Modifier.heightIn(min = 48.dp)) { Text("Usar minha posição") }
+                    Row {
+                        TextButton(colors = CoresTexto, onClick = posicionador.solicitar, modifier = Modifier.heightIn(min = 48.dp)) { Text("Usar minha posição") }
+                        TextButton(colors = CoresTexto, onClick = { escolhendoCidade = !escolhendoCidade }, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(if (escolhendoCidade) "Fechar busca" else "Escolher cidade")
+                        }
+                    }
+                    if (escolhendoCidade) SeletorLocal("clima", "Cidade da previsão", busca, "", "", vm.localClima, permitirCoordenadas = false) { a, o, n ->
+                        val la = a.toDoubleOrNull(); val lo = o.toDoubleOrNull()
+                        if (la != null && lo != null) { vm.usarPosicao(la, lo, n); escolhendoCidade = false }
+                    }
                     posicionador.aviso?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error) }
                     if (posicionador.estado != EstadoPermissao.NaoPedida)
                         Text("Sem permissão de localização, a previsão fica em Mauá, SP.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

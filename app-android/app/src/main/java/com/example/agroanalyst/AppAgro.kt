@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.agroanalyst.data.PracaDto
 import com.example.agroanalyst.data.Sessao
 import com.example.agroanalyst.ui.*
 import com.example.agroanalyst.viewmodel.*
@@ -36,6 +37,7 @@ fun AppAgro() {
     val analise: AnaliseViewModel = viewModel()
     val plantios: PlantiosViewModel = viewModel()
     val frete: FreteViewModel = viewModel()
+    val busca: BuscaViewModel = viewModel()
 
     val destino = nav.currentBackStackEntryAsState().value?.destination
     val token = Sessao.token
@@ -69,9 +71,13 @@ fun AppAgro() {
         nav.navigate(Login)
     }
 
+    LaunchedEffect(destino?.route) { busca.limpar() }
+
     LaunchedEffect(token) {
         if (token == null) {
             plantios.limpar()
+            frete.limpar()
+            mapa.limpar()
             auth.limpar()
             val atual = nav.currentDestination
             val privada = atual != null && (atual.hasRoute<Plantios>() || atual.hasRoute<PlantioNovo>() ||
@@ -112,7 +118,7 @@ fun AppAgro() {
         ) {
             composable<Inicio> {
                 InicioTela(
-                    inicio, Sessao.nome,
+                    inicio, busca, Sessao.nome,
                     aoEntrar = { pedirLogin() },
                     aoSair = auth::sair,
                     aoAbrirMapa = { cultura ->
@@ -120,18 +126,18 @@ fun AppAgro() {
                         irParaAba(abas[2])
                     },
                     aoAnalisar = { irParaAba(abas[3]) },
-                    aoFrete = { frete.preparar(null, null, null, null); nav.navigate(Frete) }
+                    aoFrete = { frete.preparar(null, null, null, null, null, null, null); nav.navigate(Frete) }
                 )
             }
             composable<Mercado> { MercadoTela(mercado) }
             composable<Mapa> {
-                MapaTela(mapa, aoCalcularFrete = { origem, destinoPraca ->
-                    frete.preparar(origem.lat, origem.lon, destinoPraca.nome, null)
+                MapaTela(mapa, logado = token != null, aoCalcularFrete = { origem, destinoPraca, modal ->
+                    frete.preparar(origem.lat, origem.lon, origem.nome, destinoPraca.lat, destinoPraca.lon, destinoPraca.nome, null, modal)
                     nav.navigate(Frete)
                 })
             }
             composable<Analise> {
-                AnaliseTela(analise, aoAnalisar = { lat, lon -> nav.navigate(AnaliseResultado(lat, lon)) })
+                AnaliseTela(analise, busca, aoAnalisar = { lat, lon -> nav.navigate(AnaliseResultado(lat, lon)) })
             }
             composable<AnaliseResultado> { entrada ->
                 val rota = entrada.toRoute<AnaliseResultado>()
@@ -145,14 +151,26 @@ fun AppAgro() {
                             plantios.prepararNovo(cultura, rota.lat, rota.lon)
                             nav.navigate(PlantioNovo)
                         }
-                    }
+                    },
+                    logado = token != null
                 )
             }
             composable<CulturaDetalhe> { entrada ->
                 CulturaDetalheTela(entrada.toRoute<CulturaDetalhe>().nome, analise, inicio) { nav.popBackStack() }
             }
             composable<Frete> {
-                FreteTela(frete, plantios, logado = Sessao.token != null, aoPedirLogin = { pedirLogin() }, aoVoltar = { nav.popBackStack() })
+                FreteTela(
+                    frete, plantios, busca, logado = Sessao.token != null,
+                    aoPedirLogin = { pedirLogin() },
+                    aoVerRota = {
+                        val r = frete.rascunho
+                        val o = PracaDto(r.origemNome.ifBlank { "Origem" }, "local", null, r.origemLat.toDoubleOrNull(), r.origemLon.toDoubleOrNull())
+                        val d = PracaDto(r.destinoNome.ifBlank { "Destino" }, "local", null, r.destinoLat.toDoubleOrNull(), r.destinoLon.toDoubleOrNull())
+                        mapa.definirRota(o, d, r.modal)
+                        irParaAba(abas[2])
+                    },
+                    aoVoltar = { nav.popBackStack() }
+                )
             }
             composable<Login> {
                 LoginTela(
@@ -177,10 +195,10 @@ fun AppAgro() {
                 )
             }
             composable<PlantioNovo> {
-                PlantioFormTela(plantios, id = null, aoVoltar = { nav.popBackStack() }, aoSalvar = { nav.popBackStack() })
+                PlantioFormTela(plantios, busca, id = null, aoVoltar = { nav.popBackStack() }, aoSalvar = { nav.popBackStack() })
             }
             composable<PlantioForm> { entrada ->
-                PlantioFormTela(plantios, id = entrada.toRoute<PlantioForm>().id, aoVoltar = { nav.popBackStack() }, aoSalvar = { nav.popBackStack() })
+                PlantioFormTela(plantios, busca, id = entrada.toRoute<PlantioForm>().id, aoVoltar = { nav.popBackStack() }, aoSalvar = { nav.popBackStack() })
             }
             composable<PlantioDetalhe> { entrada ->
                 val id = entrada.toRoute<PlantioDetalhe>().id
@@ -190,7 +208,7 @@ fun AppAgro() {
                     aoEditar = { nav.navigate(PlantioForm(id)) },
                     aoFrete = {
                         val p = plantios.atual
-                        frete.preparar(p?.lat, p?.lon, null, id)
+                        frete.preparar(p?.lat, p?.lon, p?.nome, null, null, null, id)
                         nav.navigate(Frete)
                     }
                 )

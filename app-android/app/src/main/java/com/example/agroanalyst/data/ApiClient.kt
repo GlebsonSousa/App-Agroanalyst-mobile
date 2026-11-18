@@ -12,9 +12,9 @@ object ApiClient {
 
     private val gson = GsonBuilder().serializeNulls().create()
 
-    private fun http(comToken: Boolean): OkHttpClient = OkHttpClient.Builder()
+    private fun http(comToken: Boolean, leitura: Long = 60): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(20, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(leitura, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .apply {
             if (comToken) addInterceptor { cadeia ->
@@ -26,14 +26,14 @@ object ApiClient {
         }
         .build()
 
-    private fun retrofit(url: String, comToken: Boolean) = Retrofit.Builder()
+    private fun retrofit(url: String, comToken: Boolean, leitura: Long = 60) = Retrofit.Builder()
         .baseUrl(url)
-        .client(http(comToken))
+        .client(http(comToken, leitura))
         .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
 
     val agro: ApiAgro by lazy { retrofit(BASE_URL, true).create(ApiAgro::class.java) }
-    val meteo: ApiMeteo by lazy { retrofit(BASE_URL_METEO, false).create(ApiMeteo::class.java) }
+    val meteo: ApiMeteo by lazy { retrofit(BASE_URL_METEO, false, 100).create(ApiMeteo::class.java) }
 
     fun urlFoto(fileId: String) = "${BASE_URL}upload/$fileId"
 }

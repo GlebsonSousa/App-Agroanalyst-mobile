@@ -24,7 +24,8 @@ fun AnaliseResultadoTela(
     lon: Double,
     aoVoltar: () -> Unit,
     aoAbrirCultura: (String) -> Unit,
-    aoSalvarNoPlantio: (String?) -> Unit
+    aoSalvarNoPlantio: (String?) -> Unit,
+    logado: Boolean
 ) {
     LaunchedEffect(lat, lon) { vm.buscar(lat, lon) }
     val r = vm.resultado
@@ -36,13 +37,13 @@ fun AnaliseResultadoTela(
                 EstadoDaTela(vm.carregando, vm.demorando, vm.mensagem, { vm.tentarDeNovo(lat, lon) })
             }
         } else {
-            Conteudo(r, lat, lon, aoAbrirCultura, aoSalvarNoPlantio)
+            Conteudo(r, lat, lon, aoAbrirCultura, aoSalvarNoPlantio, logado)
         }
     }
 }
 
 @Composable
-private fun Conteudo(r: SoloResposta, lat: Double, lon: Double, aoAbrirCultura: (String) -> Unit, aoSalvar: (String?) -> Unit) {
+private fun Conteudo(r: SoloResposta, lat: Double, lon: Double, aoAbrirCultura: (String) -> Unit, aoSalvar: (String?) -> Unit, logado: Boolean) {
     val solo = r.soloLocal
     val chuva = r.chuva
     val local = listOfNotNull(chuva?.cidadeProxima, chuva?.estado).joinToString(", ")
@@ -97,7 +98,7 @@ private fun Conteudo(r: SoloResposta, lat: Double, lon: Double, aoAbrirCultura: 
                     }
                 }
                 Text("Fonte: meteoserver", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                BotaoPrincipal("Salvar no plantio", { aoSalvar(recs.firstOrNull()?.nome) })
+                BotaoPrincipal(if (logado) "Salvar no plantio" else "Entrar para salvar no plantio", { aoSalvar(recs.firstOrNull()?.nome) })
             }
         }
     }

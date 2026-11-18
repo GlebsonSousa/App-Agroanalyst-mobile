@@ -15,6 +15,7 @@ data class Rascunho(
     val produtividade: String = "",
     val lat: String = "",
     val lon: String = "",
+    val local: String = "",
     val fotoId: String? = null,
     val fotoUri: Uri? = null
 )

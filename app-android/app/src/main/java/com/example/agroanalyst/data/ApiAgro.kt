@@ -17,6 +17,16 @@ interface ApiAgro {
     suspend fun top(@Query("cultura") cultura: String, @Query("n") n: Int): Response<List<TopMunicipioDto>>
     @GET("publico/clima") suspend fun clima(@Query("lat") lat: Double, @Query("lon") lon: Double): Response<ClimaDto>
     @GET("publico/pracas") suspend fun pracas(): Response<List<PracaDto>>
+    @GET("publico/cidades") suspend fun cidades(@Query("q") q: String): Response<List<CidadeDto>>
+    @GET("publico/rota")
+    suspend fun rota(
+        @Query("origemLat") origemLat: Double, @Query("origemLon") origemLon: Double,
+        @Query("destinoLat") destinoLat: Double, @Query("destinoLon") destinoLon: Double,
+        @Query("modal") modal: String
+    ): Response<RotaDto>
+    @GET("locais") suspend fun locais(): Response<List<LocalDto>>
+    @POST("locais") suspend fun criarLocal(@Body corpo: LocalEnvio): Response<LocalDto>
+    @DELETE("locais/{id}") suspend fun excluirLocal(@Path("id") id: String): Response<MensagemResposta>
     @POST("publico/frete/calcular") suspend fun calcularFrete(@Body corpo: FreteEnvio): Response<FreteDto>
 
     @POST("usuarios/registrar") suspend fun registrar(@Body corpo: RegistroEnvio): Response<MensagemResposta>

@@ -68,8 +68,8 @@ class InicioViewModel : OperacaoViewModel() {
         }
     }
 
-    fun usarPosicao(novaLat: Double, novaLon: Double) {
-        lat = novaLat; lon = novaLon; localClima = "sua posição"
+    fun usarPosicao(novaLat: Double, novaLon: Double, nome: String = "sua posição") {
+        lat = novaLat; lon = novaLon; localClima = nome
         atualizar()
     }
 

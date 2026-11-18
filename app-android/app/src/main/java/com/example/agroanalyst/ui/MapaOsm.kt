@@ -10,6 +10,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.example.agroanalyst.data.LinhaLogistica
 import com.example.agroanalyst.data.PracaDto
 import com.example.agroanalyst.data.ProducaoUfDto
+import com.example.agroanalyst.data.RotaDto
 import com.example.agroanalyst.data.UfPoligono
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -45,11 +46,16 @@ fun MapaOsm(
     mostrarProducao: Boolean,
     mostrarLogistica: Boolean,
     pracas: List<PracaDto>,
+    locais: List<PracaDto>,
     linhas: List<LinhaLogistica>?,
+    rota: RotaDto?,
     corFerrovia: Color,
     corHidrovia: Color,
     corPraca: Color,
+    corLocal: Color,
     corRota: Color,
+    corRotaFerrovia: Color,
+    corRotaHidrovia: Color,
     origem: PracaDto?,
     destino: PracaDto?,
     aoTocarUf: (String) -> Unit,
@@ -58,7 +64,7 @@ fun MapaOsm(
 ) {
     val chave = listOf(
         ufs.size, producao.hashCode(), cortes, mostrarProducao, mostrarLogistica,
-        pracas.size, linhas?.size, origem?.nome, destino?.nome
+        pracas.size, locais.size, linhas?.size, origem?.nome, destino?.nome, rota?.hashCode()
     )
     AndroidView(
         modifier = modifier,
@@ -108,17 +114,21 @@ fun MapaOsm(
                         outlinePaint.strokeWidth = 2.5f * densidade
                     })
                 }
-                if (origem != null && destino != null) mapa.overlays.add(Polyline().apply {
-                    setPoints(listOf(GeoPoint(origem.lat ?: 0.0, origem.lon ?: 0.0), GeoPoint(destino.lat ?: 0.0, destino.lon ?: 0.0)))
-                    outlinePaint.color = corRota.toArgb()
-                    outlinePaint.strokeWidth = 3f * densidade
-                })
-                pracas.forEach { p ->
+                rota?.pernas.orEmpty().forEach { perna ->
+                    val pontos = perna.pontos.orEmpty().mapNotNull { if (it.size >= 2) GeoPoint(it[1], it[0]) else null }
+                    if (pontos.size >= 2) mapa.overlays.add(Polyline().apply {
+                        setPoints(pontos)
+                        outlinePaint.color = when (perna.tipo) { "ferrovia" -> corRotaFerrovia; "hidrovia" -> corRotaHidrovia; else -> corRota }.toArgb()
+                        outlinePaint.strokeWidth = 4.5f * densidade
+                        outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
+                    })
+                }
+                (pracas.map { it to corPraca } + locais.map { it to corLocal }).forEach { (p, corBase) ->
                     val escolhida = p.nome == origem?.nome || p.nome == destino?.nome
                     mapa.overlays.add(Marker(mapa).apply {
                         position = GeoPoint(p.lat ?: 0.0, p.lon ?: 0.0)
                         title = p.nome
-                        icon = marcador(densidade, (if (escolhida) corRota else corPraca).toArgb(), if (escolhida) 11 else 8)
+                        icon = marcador(densidade, (if (escolhida) corRota else corBase).toArgb(), if (escolhida) 11 else 8)
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                         setOnMarkerClickListener { m, v ->
                             InfoWindow.closeAllInfoWindowsOn(v)
@@ -126,6 +136,16 @@ fun MapaOsm(
                             aoTocarPraca(p)
                             true
                         }
+                    })
+                }
+                val extras = listOfNotNull(origem, destino).filter { e -> (pracas + locais).none { it.nome == e.nome } }
+                extras.forEach { p ->
+                    mapa.overlays.add(Marker(mapa).apply {
+                        position = GeoPoint(p.lat ?: 0.0, p.lon ?: 0.0)
+                        title = p.nome
+                        icon = marcador(densidade, corRota.toArgb(), 11)
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                        setOnMarkerClickListener { m, v -> InfoWindow.closeAllInfoWindowsOn(v); m.showInfoWindow(); true }
                     })
                 }
             }

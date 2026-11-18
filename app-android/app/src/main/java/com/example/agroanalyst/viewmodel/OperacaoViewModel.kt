@@ -9,6 +9,7 @@ import com.example.agroanalyst.data.ApiException
 import com.example.agroanalyst.data.Sessao
 import com.example.agroanalyst.data.SessaoExpirada
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -19,12 +20,18 @@ open class OperacaoViewModel : ViewModel() {
     var demorando by mutableStateOf(false)
         private set
 
-    protected fun executar(bloco: suspend () -> Unit) {
-        if (carregando) return
-        viewModelScope.launch {
+    private var tarefa: Job? = null
+    private var geracao = 0
+
+    protected fun executar(substituir: Boolean = false, bloco: suspend () -> Unit) {
+        if (carregando && !substituir) return
+        tarefa?.cancel()
+        val minha = ++geracao
+        tarefa = viewModelScope.launch {
             carregando = true
             mensagem = null
-            val aviso = launch { delay(5_000); demorando = true }
+            demorando = false
+            val aviso = launch { delay(5_000); if (minha == geracao) demorando = true }
             try {
                 bloco()
             } catch (e: CancellationException) {
@@ -32,13 +39,12 @@ open class OperacaoViewModel : ViewModel() {
             } catch (e: SessaoExpirada) {
                 Sessao.limpar()
             } catch (e: ApiException) {
-                mensagem = e.message
+                if (minha == geracao) mensagem = e.message
             } catch (e: Exception) {
-                mensagem = "Algo deu errado (${e.javaClass.simpleName}). Tente novamente."
+                if (minha == geracao) mensagem = "Algo deu errado (${e.javaClass.simpleName}). Tente novamente."
             } finally {
                 aviso.cancel()
-                demorando = false
-                carregando = false
+                if (minha == geracao) { demorando = false; carregando = false }
             }
         }
     }

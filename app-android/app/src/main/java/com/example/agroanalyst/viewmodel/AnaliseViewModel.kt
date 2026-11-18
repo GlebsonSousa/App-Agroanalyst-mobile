@@ -26,7 +26,7 @@ class AnaliseViewModel : OperacaoViewModel() {
         val nova = "$lat,$lon"
         if (nova == chave && resultado != null) return
         resultado = null
-        executar {
+        executar(substituir = true) {
             resultado = Repositorio.solo(lat, lon)
             chave = nova
         }

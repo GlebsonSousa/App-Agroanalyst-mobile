@@ -79,7 +79,7 @@ data class PlantioEnvio(
     val fotoId: String?
 )
 data class FreteEnvio(
-    val origemLat: Double, val origemLon: Double, val destino: String, val grao: String,
+    val origemLat: Double, val origemLon: Double, val destino: String, val destinoLat: Double?, val destinoLon: Double?, val grao: String,
     val sacas: Int, val precoSaca: Double, val modal: String,
     val capacidadeT: Double?, val kmPorLitro: Double?, val eixos: Int?
 )
@@ -97,10 +97,18 @@ data class PlantioDto(
 data class FreteDto(
     val distanciaKm: Double?, val duracaoH: Double?, val viagens: Int?,
     val freteTotal: Double?, val receitaTotal: Double?, val margem: Double?,
-    val fretePorSaca: Double?, val liquidoSaca: Double?
+    val fretePorSaca: Double?, val liquidoSaca: Double?, val fonteDistancia: String?
 )
 data class FreteSalvoDto(
     val id: String?, val destino: String?, val grao: String?, val sacas: Int?,
     val precoSaca: Double?, val modal: String?, val resultado: FreteDto?,
     @SerializedName("criado_em") val criadoEm: String?
 )
+
+data class CidadeDto(val nome: String?, val uf: String?, val lat: Double?, val lon: Double?)
+
+data class LocalEnvio(val nome: String, val tipo: String, val lat: Double, val lon: Double, val cidade: String?, val uf: String?)
+data class LocalDto(val id: String?, val nome: String?, val tipo: String?, val lat: Double?, val lon: Double?, val cidade: String?, val uf: String?)
+
+data class PernaDto(val tipo: String?, val km: Double?, val estimada: Boolean?, val pontos: List<List<Double>>?)
+data class RotaDto(val modal: String?, val pernas: List<PernaDto>?, val distanciaKm: Double?)
