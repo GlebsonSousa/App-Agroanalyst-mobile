@@ -51,7 +51,6 @@ object Repositorio {
     private suspend fun <T> publico(bloco: suspend () -> Response<T>) = chamar(false, bloco)
     private suspend fun <T> privado(bloco: suspend () -> Response<T>) = chamar(true, bloco)
 
-    // ----- públicas -----
     suspend fun precos() = publico { ApiClient.agro.precos() }
     suspend fun serie(cultura: String) = publico { ApiClient.agro.serie(cultura, 30) }
     suspend fun producao(cultura: String) = publico { ApiClient.agro.producao(cultura, "uf") }
@@ -63,7 +62,6 @@ object Repositorio {
     suspend fun registrar(nome: String, email: String, senha: String) = publico { ApiClient.agro.registrar(RegistroEnvio(nome, email, senha)) }
     suspend fun login(email: String, senha: String) = publico { ApiClient.agro.login(LoginEnvio(email, senha)) }
 
-    // ----- privadas -----
     suspend fun plantios() = privado { ApiClient.agro.plantios() }
     suspend fun plantio(id: String) = privado { ApiClient.agro.plantio(id) }
     suspend fun criarPlantio(e: PlantioEnvio) = privado { ApiClient.agro.criarPlantio(e) }

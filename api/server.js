@@ -37,7 +37,6 @@ function auth(req, res, next) {
 app.get('/', (_, res) => res.json({ mensagem: 'AgroAnalyst Mobile API' }));
 app.get('/download', baixarApk);
 
-// ----- usuários -----
 app.post('/usuarios/registrar', wrap(async (req, res) => {
   const { nome, email, senha } = req.body ?? {};
   if (!texto(nome) || !texto(email) || !texto(senha)) return erro(res, 400, 'Informe nome, e-mail e senha');
@@ -61,7 +60,6 @@ app.post('/usuarios/login', wrap(async (req, res) => {
   res.json({ token: jwt.sign({ sub: u._id.toString() }, JWT_SECRET, { expiresIn: '12h' }), nome: u.nome });
 }));
 
-// ----- públicos -----
 app.get('/publico/precos', wrap(async (_, res) => {
   atualizarPrecos(db).catch(() => {});
   res.json(await listarPrecos(db));
@@ -140,7 +138,6 @@ app.get('/upload/:fileId', wrap(async (req, res) => {
   fotos.openDownloadStream(o).pipe(res);
 }));
 
-// ----- privados -----
 const plantios = () => db.collection('plantios');
 
 const plantioDto = (p) => ({
