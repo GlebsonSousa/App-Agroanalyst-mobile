@@ -56,7 +56,7 @@ class InicioViewModel : OperacaoViewModel() {
                 top = s.top.orEmpty()
                 rotuloDados = "dados de ${(s.geradoEm ?: "").take(10).dataCurta()}"
             }
-            try { Repositorio.aquecer() } catch (e: CancellationException) { throw e } catch (_: Exception) { }
+            launch { try { Repositorio.aquecer() } catch (e: CancellationException) { throw e } catch (_: Exception) { } }
             atualizar()
         }
     }
