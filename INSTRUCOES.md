@@ -67,6 +67,7 @@ Senha: `123456`
 
 - A distância do frete é estimada por Haversine × 1,30, não por rota real.
 - Os preços têm até 6 horas de atraso e o histórico cresce a cada coleta (o CEPEA publica poucos dias por vez).
+- Soja e trigo: o CEPEA responde HTTP 403 às consultas feitas pelo servidor da Render. Enquanto isso não muda, o app mostra para essas duas culturas o último retrato embutido, com a data da coleta (17/11/2026). Milho, café e algodão atualizam normalmente.
 - A produção do IBGE é anual (último ano divulgado).
 - O fator de safra está em 1,0 em todos os meses.
 - O JWT não é guardado no aparelho: fechar o app exige novo login.
