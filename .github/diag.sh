@@ -21,7 +21,7 @@ tela 2_mercado
 toque 160 610
 tela 3_mapa
 adb shell input tap 160 610
-sleep 10
+sleep 14
 tela 3b_mapa_producao
 achar() {
   adb shell uiautomator dump /sdcard/u.xml > /dev/null 2>&1
