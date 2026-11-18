@@ -52,7 +52,7 @@ fun InicioTela(
                     }
                     if (nome != null) IconButton(onClick = aoSair, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.AutoMirrored.Filled.Logout, "Sair da conta")
-                    } else TextButton(onClick = aoEntrar, modifier = Modifier.heightIn(min = 48.dp)) { Text("Entrar") }
+                    } else TextButton(colors = CoresTexto, onClick = aoEntrar, modifier = Modifier.heightIn(min = 48.dp)) { Text("Entrar") }
                 }
             }
             if (vm.carregando && vm.demorando) item {
@@ -100,7 +100,7 @@ fun InicioTela(
                         }
                     }
                     Spacer(Modifier.height(8.dp))
-                    TextButton(onClick = posicionador.solicitar, modifier = Modifier.heightIn(min = 48.dp)) { Text("Usar minha posição") }
+                    TextButton(colors = CoresTexto, onClick = posicionador.solicitar, modifier = Modifier.heightIn(min = 48.dp)) { Text("Usar minha posição") }
                     posicionador.aviso?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error) }
                     if (posicionador.estado != EstadoPermissao.NaoPedida)
                         Text("Sem permissão de localização, a previsão fica em Mauá, SP.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

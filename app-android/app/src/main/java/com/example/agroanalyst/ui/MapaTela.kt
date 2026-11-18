@@ -77,13 +77,13 @@ fun MapaTela(vm: MapaViewModel, aoCalcularFrete: (PracaDto, PracaDto) -> Unit) {
                         Spacer(Modifier.height(8.dp))
                         BotaoPrincipal("Calcular frete", { aoCalcularFrete(o, d) })
                     }
-                    if (o != null) TextButton(onClick = vm::limparRota, modifier = Modifier.heightIn(min = 48.dp)) { Text("Limpar rota") }
+                    if (o != null) TextButton(colors = CoresTexto, onClick = vm::limparRota, modifier = Modifier.heightIn(min = 48.dp)) { Text("Limpar rota") }
                 }
                 vm.ufSelecionada?.let { u ->
                     CartaoInfo(titulo = "${u.uf} · ${nomeCultura} · ${u.ano}") {
                         Text("Valor: ${((u.valorProducao ?: 0.0) / 1000).formatar(0)} mi R$ · Quantidade: ${(u.quantidade ?: 0.0).formatar(0)} t", style = MaterialTheme.typography.bodyMedium)
                         Text("Área: ${(u.area ?: 0.0).formatar(0)} ha · Rendimento: ${(u.rendimento ?: 0.0).formatar(0)} kg/ha", style = MaterialTheme.typography.bodyMedium)
-                        TextButton(onClick = vm::fecharUf, modifier = Modifier.heightIn(min = 48.dp)) { Text("Fechar") }
+                        TextButton(colors = CoresTexto, onClick = vm::fecharUf, modifier = Modifier.heightIn(min = 48.dp)) { Text("Fechar") }
                     }
                 }
             }

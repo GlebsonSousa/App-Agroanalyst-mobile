@@ -13,6 +13,7 @@ import com.example.agroanalyst.data.ProducaoUfDto
 import com.example.agroanalyst.data.UfPoligono
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
@@ -74,6 +75,7 @@ fun MapaOsm(
                 minZoomLevel = 3.0
                 controller.setZoom(4.0)
                 controller.setCenter(GeoPoint(-14.2, -51.9))
+                post { zoomToBoundingBox(BoundingBox(5.5, -34.0, -34.0, -74.0), false, (16 * resources.displayMetrics.density).toInt()) }
                 overlayManager.tilesOverlay.loadingBackgroundColor = corFundo.toArgb()
                 overlayManager.tilesOverlay.loadingLineColor = corFundo.toArgb()
                 onResume()

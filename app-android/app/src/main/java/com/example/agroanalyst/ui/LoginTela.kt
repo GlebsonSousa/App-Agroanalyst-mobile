@@ -28,7 +28,7 @@ fun LoginTela(vm: AuthViewModel, aoEntrar: (Any?) -> Unit, aoIrParaCadastro: () 
             CampoTexto(senha, { senha = it }, "Senha", tipo = KeyboardType.Password, senha = true)
             EstadoDaTela(vm.carregando, vm.demorando, vm.mensagem)
             BotaoPrincipal("Entrar", { vm.entrar(email, senha, aoEntrar) }, carregando = vm.carregando, habilitado = email.isNotBlank() && senha.isNotBlank())
-            TextButton(onClick = aoIrParaCadastro, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Criar conta") }
+            TextButton(colors = CoresTexto, onClick = aoIrParaCadastro, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Criar conta") }
         }
     }
 }

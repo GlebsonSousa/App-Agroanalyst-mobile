@@ -82,8 +82,8 @@ fun PlantiosTela(vm: PlantiosViewModel, nome: String?, aoNovo: () -> Unit, aoAbr
             onDismissRequest = { excluindo = null },
             title = { Text("Excluir plantio?") },
             text = { Text("\"${p.nome}\" será removido da sua conta.") },
-            confirmButton = { TextButton(onClick = { p.id?.let { vm.excluir(it) }; excluindo = null }) { Text("Excluir") } },
-            dismissButton = { TextButton(onClick = { excluindo = null }) { Text("Cancelar") } }
+            confirmButton = { TextButton(colors = CoresTexto, onClick = { p.id?.let { vm.excluir(it) }; excluindo = null }) { Text("Excluir") } },
+            dismissButton = { TextButton(colors = CoresTexto, onClick = { excluindo = null }) { Text("Cancelar") } }
         )
     }
 }

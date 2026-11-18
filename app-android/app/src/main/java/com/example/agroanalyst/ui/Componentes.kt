@@ -163,7 +163,7 @@ fun EstadoDaTela(carregando: Boolean, demorando: Boolean, mensagem: String?, aoT
             )
         } else if (mensagem != null) {
             Text(mensagem, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-            if (aoTentarDeNovo != null) TextButton(onClick = aoTentarDeNovo, modifier = Modifier.heightIn(min = 48.dp)) { Text("Tentar de novo") }
+            if (aoTentarDeNovo != null) TextButton(colors = CoresTexto, onClick = aoTentarDeNovo, modifier = Modifier.heightIn(min = 48.dp)) { Text("Tentar de novo") }
         }
     }
 }
@@ -365,3 +365,5 @@ fun faixasDeCor(): List<Color> {
     val ate = MaterialTheme.colorScheme.primary
     return (0 until 5).map { androidx.compose.ui.graphics.lerp(de, ate, it / 4f) }
 }
+
+val CoresTexto @Composable get() = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
