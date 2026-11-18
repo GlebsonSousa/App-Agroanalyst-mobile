@@ -47,11 +47,13 @@ def rolar():
 
 
 def achar_rolando(sub, exato=False, ultimo=False, desc=False, tentativas=6):
-    for i in range(tentativas):
-        n = achar(sub, exato, ultimo, desc)
-        if n:
-            return n
-        rolar()
+    for rodada in range(2):
+        for _ in range(tentativas):
+            n = achar(sub, exato, ultimo, desc)
+            if n:
+                return n
+            rolar()
+        topo()
     return None
 
 
