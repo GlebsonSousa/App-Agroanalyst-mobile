@@ -117,7 +117,8 @@ if ok:
     digitar("Campinas")
 passo("Início: sugestões de cidade enquanto digita", ok and esperar("Campinas, SP", 45))
 if tocar("Campinas, SP", exato=True):
-    passo("Início: clima troca para a cidade escolhida", esperar("Clima · Campinas, SP", 45))
+    topo()
+    passo("Início: clima troca para a cidade escolhida", esperar("Clima · Campinas, SP", 60))
 else:
     passo("Início: clima troca para a cidade escolhida", False, "sugestão não encontrada")
 topo()
@@ -134,7 +135,7 @@ if tocar("Mauá, SP", exato=True):
 else:
     passo("Análise: quadro mostra nome e coordenadas", False)
 ok = tocar("Analisar ponto", exato=True)
-passo("Análise: resultado do solo carrega", ok and esperar("Argilossolo", 150), "meteoserver pode estar acordando")
+passo("Análise: resultado do solo carrega", ok and esperar("Argilossolo", 240), "consulta de solo demorou")
 passo("Análise: pH 5,0 e não 0,0", tem("5,0", True) and not tem("0,0", True))
 passo("Análise: chuva anual 1.336,6 mm", tem("1.336,6"))
 passo("Análise: culturas recomendadas", tem("Arroz (Sequeiro)") or achar_rolando("Arroz (Sequeiro)") is not None)
@@ -164,6 +165,7 @@ if tocar("Salvar no plantio", exato=True):
     campo("Produtividade (sacas/ha)", "50")
     tocar("Salvar", exato=True, ultimo=True)
     passo("Plantio salvo e volta ao resultado", esperar("Salvar no plantio", 40, exato=True))
+    voltar()
 else:
     passo("Formulário de plantio abre preenchido", False)
 

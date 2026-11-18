@@ -4,9 +4,6 @@ import android.content.res.Resources
 import com.google.gson.JsonParser
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
@@ -79,7 +76,24 @@ object Repositorio {
     suspend fun criarLocal(e: LocalEnvio) = privado { ApiClient.agro.criarLocal(e) }
     suspend fun excluirLocal(id: String) = privado { ApiClient.agro.excluirLocal(id) }
     suspend fun calcularFrete(e: FreteEnvio) = publico { ApiClient.agro.calcularFrete(e) }
-    suspend fun solo(lat: Double, lon: Double) = publico(3) { ApiClient.meteo.solo(lat, lon) }
+    suspend fun solo(lat: Double, lon: Double): SoloResposta {
+        val limite = System.currentTimeMillis() + 8 * 60_000
+        var falhasDeRede = 0
+        while (System.currentTimeMillis() < limite) {
+            val r = try {
+                ApiClient.agro.solo(lat, lon)
+            } catch (e: IOException) {
+                if (++falhasDeRede >= 5) throw ApiException("Sem conexão com o servidor. Verifique a internet e tente de novo.")
+                delay(3_000)
+                continue
+            }
+            falhasDeRede = 0
+            if (r.code() == 202) { delay(4_000); continue }
+            if (r.isSuccessful) return r.body() ?: throw ApiException("Resposta vazia do servidor")
+            throw ApiException(mensagemDaApi(r))
+        }
+        throw ApiException("A consulta de solo demorou mais que o esperado. Tente de novo: o servidor continua trabalhando nela.")
+    }
     suspend fun registrar(nome: String, email: String, senha: String) = publico { ApiClient.agro.registrar(RegistroEnvio(nome, email, senha)) }
     suspend fun login(email: String, senha: String) = publico { ApiClient.agro.login(LoginEnvio(email, senha)) }
 
@@ -92,12 +106,7 @@ object Repositorio {
     suspend fun fretes(plantioId: String) = privado { ApiClient.agro.fretes(plantioId) }
     suspend fun salvarFrete(plantioId: String, e: FreteEnvio) = privado { ApiClient.agro.salvarFrete(plantioId, e) }
 
-    suspend fun aquecer() = coroutineScope {
-        listOf(
-            async { ignorarErro { ApiClient.agro.ping() } },
-            async { ignorarErro { ApiClient.meteo.ping() } }
-        ).awaitAll()
-    }
+    suspend fun aquecer() = ignorarErro { ApiClient.agro.ping() }
 
     private suspend fun ignorarErro(bloco: suspend () -> Unit) {
         try { bloco() } catch (e: CancellationException) { throw e } catch (_: Exception) { }

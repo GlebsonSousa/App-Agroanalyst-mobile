@@ -8,13 +8,12 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
     const val BASE_URL = "https://app-agroanalyst-mobile.onrender.com/"
-    const val BASE_URL_METEO = "https://meteoserver-stfv.onrender.com/"
 
     private val gson = GsonBuilder().serializeNulls().create()
 
-    private fun http(comToken: Boolean, leitura: Long = 60): OkHttpClient = OkHttpClient.Builder()
+    private fun http(comToken: Boolean): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(20, TimeUnit.SECONDS)
-        .readTimeout(leitura, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .apply {
             if (comToken) addInterceptor { cadeia ->
@@ -26,14 +25,13 @@ object ApiClient {
         }
         .build()
 
-    private fun retrofit(url: String, comToken: Boolean, leitura: Long = 60) = Retrofit.Builder()
+    private fun retrofit(url: String, comToken: Boolean) = Retrofit.Builder()
         .baseUrl(url)
-        .client(http(comToken, leitura))
+        .client(http(comToken))
         .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
 
     val agro: ApiAgro by lazy { retrofit(BASE_URL, true).create(ApiAgro::class.java) }
-    val meteo: ApiMeteo by lazy { retrofit(BASE_URL_METEO, false, 100).create(ApiMeteo::class.java) }
 
     fun urlFoto(fileId: String) = "${BASE_URL}upload/$fileId"
 }

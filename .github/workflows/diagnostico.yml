@@ -3,7 +3,7 @@ name: Diagnostico
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/diagnostico.yml', '.github/diag.sh']
+    paths: ['.github/workflows/diagnostico.yml', '.github/diag.sh', '.github/e2e.py']
 
 jobs:
   emulador:

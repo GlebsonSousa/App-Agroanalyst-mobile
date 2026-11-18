@@ -17,6 +17,7 @@ interface ApiAgro {
     suspend fun top(@Query("cultura") cultura: String, @Query("n") n: Int): Response<List<TopMunicipioDto>>
     @GET("publico/clima") suspend fun clima(@Query("lat") lat: Double, @Query("lon") lon: Double): Response<ClimaDto>
     @GET("publico/pracas") suspend fun pracas(): Response<List<PracaDto>>
+    @GET("publico/solo") suspend fun solo(@Query("lat") lat: Double, @Query("lon") lon: Double): Response<SoloResposta>
     @GET("publico/cidades") suspend fun cidades(@Query("q") q: String): Response<List<CidadeDto>>
     @GET("publico/rota")
     suspend fun rota(

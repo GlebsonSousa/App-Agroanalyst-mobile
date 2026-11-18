@@ -12,6 +12,7 @@ const { producaoUf, producaoTop } = require('./sidra');
 const { clima } = require('./clima');
 const { buscarCidades } = require('./cidades');
 const { rotaReal } = require('./rotas');
+const { solo, aquecerPontos } = require('./solo');
 const { baixarApk } = require('./download');
 const { semear } = require('./seed');
 
@@ -106,6 +107,15 @@ app.get('/publico/clima', wrap(async (req, res) => {
 app.get('/publico/pracas', wrap(async (_, res) => {
   const lista = await db.collection('pracas').find().sort({ nome: 1 }).toArray();
   res.json(lista.map((p) => ({ nome: p.nome, tipo: p.tipo, uf: p.uf, lat: p.lat, lon: p.lon })));
+}));
+
+app.get('/publico/solo', wrap(async (req, res) => {
+  const lat = Number(req.query.lat), lon = Number(req.query.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return erro(res, 400, 'Coordenada inválida');
+  const r = await solo(db, lat, lon);
+  if (r.pronto) return res.json(r.dados);
+  if (r.erro) return res.status(502).json({ mensagem: 'Não foi possível consultar o solo agora. Tente de novo em instantes.', detalhe: r.erro });
+  res.status(202).json({ mensagem: 'Consultando o solo. A primeira consulta de um ponto pode levar alguns minutos.' });
 }));
 
 app.get('/publico/cidades', wrap(async (req, res) => {
@@ -304,6 +314,7 @@ app.use((_, res) => erro(res, 404, 'Rota não encontrada'));
   await db.collection('graos').createIndex({ nome: 1 }, { unique: true });
   await semear(db);
   app.listen(PORT, () => console.log(`API na porta ${PORT}`));
+  aquecerPontos(db, [[-23.67, -46.46], [-22.9, -47.06], [-15.78, -47.93], [-16.47, -54.64], [-12.55, -55.72]]).catch(() => {});
   const rodarRaspagem = () => atualizarPrecos(db).then((r) => console.log('precos', r)).catch((e) => console.error('precos', e.message));
   rodarRaspagem();
   setInterval(rodarRaspagem, 6 * 60 * 60 * 1000);

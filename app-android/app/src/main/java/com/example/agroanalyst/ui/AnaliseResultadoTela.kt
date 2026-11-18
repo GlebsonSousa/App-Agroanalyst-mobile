@@ -35,6 +35,10 @@ fun AnaliseResultadoTela(
         if (r == null) {
             Column(Modifier.padding(16.dp)) {
                 EstadoDaTela(vm.carregando, vm.demorando, vm.mensagem, { vm.tentarDeNovo(lat, lon) })
+                if (vm.carregando) Text(
+                    "Consultando o solo. A primeira consulta de cada ponto é lenta e pode levar alguns minutos; depois fica instantânea. Pode voltar e continuar usando o app.",
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         } else {
             Conteudo(r, lat, lon, aoAbrirCultura, aoSalvarNoPlantio, logado)
