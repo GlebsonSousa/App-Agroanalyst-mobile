@@ -24,6 +24,16 @@ toque 224 610
 tela 4_analise
 toque 288 610
 tela 5_login_meus
+adb shell am force-stop com.example.agroanalyst
+adb shell svc wifi disable
+adb shell svc data disable
+adb shell cmd connectivity airplane-mode enable
+sleep 4
+echo "=== SEM REDE ==="
+adb shell ping -c 1 -W 2 8.8.8.8 > /dev/null 2>&1 && echo "rede ainda ativa" || echo "rede desligada"
+adb shell monkey -p com.example.agroanalyst -c android.intent.category.LAUNCHER 1 > /dev/null
+sleep 3
+tela 6_sem_rede
 echo "=== CRASH ==="
 adb logcat -d -b crash | head -60
 echo "=== PROCESSO FINAL ==="
