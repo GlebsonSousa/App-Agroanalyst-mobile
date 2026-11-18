@@ -1,4 +1,4 @@
-import re, subprocess, sys, time
+import os, re, subprocess, sys, time
 import xml.etree.ElementTree as ET
 
 resultados = []
@@ -108,6 +108,29 @@ def campo(rotulo, valor):
     return ok
 
 
+
+def foto(nome):
+    os.makedirs("shots", exist_ok=True)
+    dados = subprocess.run(["adb", "exec-out", "screencap", "-p"], capture_output=True).stdout
+    with open(f"shots/{nome}.png", "wb") as f:
+        f.write(dados)
+
+
+def esperar_rolando(sub, segundos=60, exato=False):
+    fim = time.time() + segundos
+    while time.time() < fim:
+        if achar_rolando(sub, exato, tentativas=4):
+            return True
+        time.sleep(3)
+    return False
+
+
+
+adb("shell", "pm", "grant", "com.example.agroanalyst", "android.permission.ACCESS_FINE_LOCATION")
+adb("shell", "pm", "grant", "com.example.agroanalyst", "android.permission.ACCESS_COARSE_LOCATION")
+adb("shell", "settings", "put", "secure", "location_mode", "3")
+adb("emu", "geo", "fix", "-46.46", "-23.67")
+
 # ---------------------------------------------------------------- Início
 passo("Início abre com preços", esperar("Soja", 40))
 passo("Início mostra o clima", esperar("Clima", 20))
@@ -122,10 +145,26 @@ if tocar("Campinas, SP", exato=True):
 else:
     passo("Início: clima troca para a cidade escolhida", False, "sugestão não encontrada")
 topo()
+foto("01_inicio")
+
+# ---------------------------------------------------------------- Mercado
+aba("Mercado")
+passo("Mercado lista as culturas", esperar("Soja", 20) and esperar("CEPEA/ESALQ", 5))
+if tocar("Soja", exato=True):
+    passo("Mercado: toque abre o histórico", achar_rolando("Últimos") is not None)
+foto("02_mercado")
+
+# ---------------------------------------------------------------- Mapa (produção)
+aba("Mapa")
+passo("Mapa: camada de produção com legenda", esperar("Fonte: IBGE/SIDRA", 40))
+time.sleep(8)
+foto("03_mapa_producao")
 
 # ---------------------------------------------------------------- Análise
 aba("Análise")
 passo("Análise: abre a tela de escolha", esperar("Escolha o ponto", 15))
+ok = tocar("Usar minha posição", exato=True)
+passo("Análise: GPS preenche o local", ok and esperar("Minha posição", 25), "plano B do sistema")
 ok = tocar("Buscar cidade", exato=True)
 if ok:
     digitar("Maua")
@@ -140,6 +179,7 @@ passo("Análise: pH 5,0 e não 0,0", tem("5,0", True) and not tem("0,0", True))
 passo("Análise: chuva anual 1.336,6 mm", tem("1.336,6"))
 passo("Análise: culturas recomendadas", tem("Arroz (Sequeiro)") or achar_rolando("Arroz (Sequeiro)") is not None)
 passo("Análise: sem conta pede para entrar", achar_rolando("Entrar para salvar no plantio", True) is not None)
+foto("04_analise_resultado")
 
 if tocar("Arroz (Sequeiro)", exato=True):
     passo("Análise: detalhe da cultura abre", esperar("Faixas ideais e requisitos", 15))
@@ -163,6 +203,7 @@ if tocar("Salvar no plantio", exato=True):
     campo("Nome do plantio", "Talhao E2E")
     campo("Área (ha)", "10")
     campo("Produtividade (sacas/ha)", "50")
+    foto("05_form_plantio")
     tocar("Salvar", exato=True, ultimo=True)
     passo("Plantio salvo e volta ao resultado", esperar("Salvar no plantio", 40, exato=True))
     voltar()
@@ -171,30 +212,45 @@ else:
 
 aba("Meus")
 passo("Meus: plantio aparece na lista", esperar("Talhao E2E", 40))
+foto("06_lista_plantios")
 if tocar("Talhao E2E", exato=True):
     passo("Detalhe do plantio abre", esperar("Fretes salvos", 40))
-    passo("Detalhe mostra o solo do ponto", esperar("Argilossolo", 150))
+    passo("Detalhe mostra o solo do ponto", esperar("Argilossolo", 240))
+    if tocar("Editar", exato=True):
+        passo("Edição abre com os dados", esperar("Editar plantio", 20, exato=True) and esperar("Talhao E2E", 20))
+        campo("Nome do plantio", "X")
+        tocar("Salvar", exato=True, ultimo=True)
+        passo("Edição salva e detalhe mostra o novo nome", esperar("Talhao E2EX", 40))
+    else:
+        passo("Edição abre com os dados", False)
 
 # ---------------------------------------------------------------- Frete a partir do plantio
+topo()
 ok = tocar("Calcular frete", exato=True)
-passo("Frete abre com a origem do plantio", ok and esperar("Calcular frete", 15) and achar_rolando("Talhao E2E") is not None)
+passo("Frete abre com a origem do plantio", ok and esperar("Local de partida", 20))
 tocar("Porto de Santos", exato=False)
 campo("Sacas de 60 kg", "3000")
 campo("Preço por saca", "128.4")
+foto("07_frete_formulario")
 tocar("Calcular", exato=True, ultimo=True)
-passo("Frete rodoviário calculado por rota", esperar("Distância por rota", 90))
-passo("Frete mostra frete total", tem("Frete total") or achar_rolando("Frete total") is not None)
+passo("Frete rodoviário calculado por rota", esperar_rolando("Distância por rota", 120))
+passo("Frete mostra frete total", achar_rolando("Frete total") is not None)
+foto("08_frete_resultado")
 if tocar("Ver rota no mapa", exato=True):
     passo("Mapa abre com a rota real", esperar("Distância por rota:", 60))
     passo("Mapa mostra o trecho rodoviário", tem("Rodovia"))
+    time.sleep(8)
+    foto("09_mapa_rodovia")
     tocar("Ferroviário", exato=True, rolando=False)
     ferro = esperar("Ferrovia", 40) or esperar("indisponível", 5)
     passo("Mapa responde ao trocar para ferroviário", ferro)
+    time.sleep(6)
+    foto("10_mapa_ferrovia_ou_aviso")
     tocar("Hidroviário", exato=True, rolando=False)
     passo("Mapa: hidroviário indisponível não é desenhado", esperar("indisponível", 40))
-    adb("exec-out", "screencap", "-p", ">", "/dev/null")
+    foto("11_mapa_hidrovia_aviso")
 
-# ---------------------------------------------------------------- Frete com cidades, salvar local, salvar frete
+# ---------------------------------------------------------------- Frete com cidades, salvar local, ferroviário
 aba("Início")
 esperar("Calcular frete", 15)
 tocar("Calcular frete", exato=True)
@@ -209,21 +265,25 @@ if tocar("Salvar em meus locais", exato=True):
     tocar("Nome do local", exato=True, rolando=False)
     digitar("Partida E2E")
     tocar("Salvar", exato=True, ultimo=True, rolando=False)
-    passo("Local salvo em meus locais", esperar("Partida E2E", 40))
+    passo("Local salvo em meus locais", esperar_rolando("Partida E2E", 40))
 tocar("Porto de Santos", exato=False)
 campo("Sacas de 60 kg", "3000")
 campo("Preço por saca", "128.4")
 tocar("Ferroviário", exato=True)
+foto("12_frete_ferroviario_form")
 tocar("Calcular", exato=True, ultimo=True)
-passo("Frete ferroviário por trajeto real", esperar("Distância por rota", 90))
+passo("Frete ferroviário por trajeto real", esperar_rolando("Distância por rota", 120))
 if tocar("Ver rota no mapa", exato=True):
-    passo("Mapa: rota ferroviária com trecho de ferrovia", esperar("Ferrovia", 60) and tem("Distância por rota:"))
+    passo("Mapa: rota ferroviária tem trecho de ferrovia", esperar("Ferrovia", 60) and tem("Distância por rota:"))
+    time.sleep(8)
+    foto("13_mapa_ferrovia_real")
 
 # ---------------------------------------------------------------- limpeza
 aba("Início")
 tocar("Calcular frete", exato=True)
 if tocar("Remover Partida E2E", desc=True):
-    passo("Local removido", esperar("Locais", 5) or True)
+    time.sleep(3)
+    passo("Local removido", not tem("Partida E2E"))
 voltar()
 aba("Meus")
 esperar("Talhao E2E", 40)

@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
@@ -34,15 +35,25 @@ fun rememberPosicionador(aoPosicao: (Double, Double) -> Unit): Posicionador {
     var aviso by rememberSaveable { mutableStateOf<String?>(null) }
     val aoPosicaoAtual by rememberUpdatedState(aoPosicao)
 
+    fun semPosicao() { aviso = "Não foi possível obter a posição. Busque a cidade ou digite a coordenada." }
+
+    fun usarServicoDoSistema() {
+        val gerente = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+        val ultima = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+            .mapNotNull { fonte -> try { gerente?.getLastKnownLocation(fonte) } catch (e: Exception) { null } }
+            .maxByOrNull { it.time }
+        if (ultima != null) { aviso = null; aoPosicaoAtual(ultima.latitude, ultima.longitude) } else semPosicao()
+    }
+
     fun buscar() {
         try {
             LocationServices.getFusedLocationProviderClient(context)
                 .getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
                 .addOnSuccessListener { loc ->
                     if (loc != null) { aviso = null; aoPosicaoAtual(loc.latitude, loc.longitude) }
-                    else aviso = "Não foi possível obter a posição. Digite a coordenada."
+                    else usarServicoDoSistema()
                 }
-                .addOnFailureListener { aviso = "Não foi possível obter a posição. Digite a coordenada." }
+                .addOnFailureListener { usarServicoDoSistema() }
         } catch (e: SecurityException) {
             aviso = "Sem permissão de localização. Digite a coordenada."
         }
