@@ -18,10 +18,6 @@ import com.example.agroanalyst.viewmodel.BuscaViewModel
 
 private fun numero(t: String) = t.trim().replace(',', '.').toDoubleOrNull()
 
-/**
- * Local por nome de cidade (com sugestões enquanto digita) ou por coordenadas.
- * O local escolhido aparece sempre num quadro próprio, com nome e latitude/longitude.
- */
 @Composable
 fun SeletorLocal(
     id: String,
