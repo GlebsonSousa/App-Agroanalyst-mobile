@@ -25,6 +25,10 @@ function calcularFrete(p, e) {
   } else if (e.modal === 'ferroviario' || e.modal === 'hidroviario') {
     freteTotal = toneladas * (e.distanciaKm * p.custoTKm + p.taxaTransbordoT) * fator;
     duracaoH = e.distanciaKm / p.velocidadeKmh + p.horasTerminal;
+    if (e.pernas) {
+      duracaoH = p.horasTerminal + e.pernas.reduce((h, perna) =>
+        h + (perna.tipo === 'rodovia' ? (perna.km / p.velocidadeCaminhaoKmh) * p.fatorTempoCaminhao : perna.km / p.velocidadeKmh), 0);
+    }
   } else {
     throw new Error('Modal inválido');
   }

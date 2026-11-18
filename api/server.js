@@ -10,6 +10,8 @@ const { calcularFrete, distanciaEstimadaKm } = require('./frete');
 const { atualizarPrecos, listarPrecos, serie, PRODUTOS } = require('./cepea');
 const { producaoUf, producaoTop } = require('./sidra');
 const { clima } = require('./clima');
+const { buscarCidades } = require('./cidades');
+const { rotaReal } = require('./rotas');
 const { baixarApk } = require('./download');
 const { semear } = require('./seed');
 
@@ -106,22 +108,55 @@ app.get('/publico/pracas', wrap(async (_, res) => {
   res.json(lista.map((p) => ({ nome: p.nome, tipo: p.tipo, uf: p.uf, lat: p.lat, lon: p.lon })));
 }));
 
+app.get('/publico/cidades', wrap(async (req, res) => {
+  const q = String(req.query.q ?? '').trim();
+  if (q.length < 2 || q.length > 60) return erro(res, 400, 'Digite pelo menos 2 letras da cidade');
+  try { res.json(await buscarCidades(q)); } catch (e) { falhaExterna(res, e); }
+}));
+
 const MODAIS = ['rodoviario', 'ferroviario', 'hidroviario'];
 
+app.get('/publico/rota', wrap(async (req, res) => {
+  const [oLat, oLon, dLat, dLon] = ['origemLat', 'origemLon', 'destinoLat', 'destinoLon'].map((k) => Number(req.query[k]));
+  const validas = [oLat, dLat].every((v) => Number.isFinite(v) && Math.abs(v) <= 90) && [oLon, dLon].every((v) => Number.isFinite(v) && Math.abs(v) <= 180);
+  if (!validas) return erro(res, 400, 'Coordenadas inválidas');
+  const modal = req.query.modal ?? 'rodoviario';
+  if (!MODAIS.includes(modal)) return erro(res, 400, 'Modal inválido');
+  const p = await db.collection('parametros').findOne({ _id: 'frete' });
+  try {
+    const rota = await rotaReal({ lat: oLat, lon: oLon }, { lat: dLat, lon: dLon }, modal, p.fatorRota);
+    if (!rota) return erro(res, 404, `Trajeto ${modal === 'ferroviario' ? 'ferroviário' : 'hidroviário'} indisponível para este par de locais`);
+    res.json(rota);
+  } catch (e) { falhaExterna(res, e); }
+}));
+
 async function calcular(b) {
-  const { origemLat, origemLon, destino, grao, sacas, precoSaca, modal, capacidadeT, kmPorLitro, eixos } = b ?? {};
+  const { origemLat, origemLon, destino, destinoLat, destinoLon, grao, sacas, precoSaca, modal, capacidadeT, kmPorLitro, eixos } = b ?? {};
   if (!num(origemLat) || Math.abs(origemLat) > 90 || !num(origemLon) || Math.abs(origemLon) > 180) return { status: 400, msg: 'Coordenada de origem inválida' };
   if (!Number.isInteger(sacas) || sacas <= 0 || !num(precoSaca) || precoSaca <= 0) return { status: 400, msg: 'Sacas e preço devem ser maiores que zero' };
   if (!MODAIS.includes(modal)) return { status: 400, msg: 'Modal inválido' };
   if (modal === 'rodoviario' && !(num(capacidadeT) && capacidadeT > 0 && num(kmPorLitro) && kmPorLitro > 0 && Number.isInteger(eixos) && eixos > 0))
     return { status: 400, msg: 'Informe capacidade, km/L e eixos do caminhão' };
-  const praca = texto(destino) && await db.collection('pracas').findOne({ nome: destino });
-  if (!praca) return { status: 404, msg: 'Destino não encontrado' };
+  let alvo;
+  if (num(destinoLat) && num(destinoLon)) {
+    if (Math.abs(destinoLat) > 90 || Math.abs(destinoLon) > 180) return { status: 400, msg: 'Coordenada de destino inválida' };
+    alvo = { lat: destinoLat, lon: destinoLon };
+  } else {
+    const praca = texto(destino) && await db.collection('pracas').findOne({ nome: destino });
+    if (!praca) return { status: 404, msg: 'Destino não encontrado' };
+    alvo = { lat: praca.lat, lon: praca.lon };
+  }
   const g = await db.collection('graos').findOne({ nome: grao ?? 'soja' });
   if (!g) return { status: 400, msg: 'Grão não suportado' };
   const p = await db.collection('parametros').findOne({ _id: 'frete' });
-  const distanciaKm = distanciaEstimadaKm({ lat: origemLat, lon: origemLon }, praca, p.fatorRota);
-  const resultado = calcularFrete(p, { distanciaKm, sacas, kgPorSaca: g.kgPorSaca, precoSaca, modal, capacidadeT, kmPorLitro, eixos });
+  const origem = { lat: origemLat, lon: origemLon };
+  let distanciaKm, pernas = null, fonteDistancia = 'estimada';
+  try {
+    const rota = await rotaReal(origem, alvo, modal, p.fatorRota);
+    if (rota) { distanciaKm = rota.distanciaKm; pernas = rota.pernas; fonteDistancia = 'rota'; }
+  } catch (e) { console.error('rota', e.message); }
+  if (distanciaKm == null) distanciaKm = distanciaEstimadaKm(origem, alvo, p.fatorRota);
+  const resultado = { ...calcularFrete(p, { distanciaKm, pernas, sacas, kgPorSaca: g.kgPorSaca, precoSaca, modal, capacidadeT, kmPorLitro, eixos }), fonteDistancia };
   return { resultado, grao: g.nome };
 }
 
@@ -215,6 +250,28 @@ app.get('/plantios/:id/fretes', auth, wrap(async (req, res) => {
   res.json((await db.collection('fretes').find({ plantioId: p._id }).sort({ criadoEm: -1 }).toArray()).map(freteDto));
 }));
 
+const localDto = (l) => ({ id: l._id.toString(), nome: l.nome, tipo: l.tipo, lat: l.lat, lon: l.lon, cidade: l.cidade ?? null, uf: l.uf ?? null });
+
+app.get('/locais', auth, wrap(async (req, res) => {
+  res.json((await db.collection('locais').find({ usuarioId: req.usuarioId }).sort({ nome: 1 }).toArray()).map(localDto));
+}));
+
+app.post('/locais', auth, wrap(async (req, res) => {
+  const { nome, tipo = 'ambos', lat, lon, cidade, uf } = req.body ?? {};
+  if (!texto(nome) || nome.trim().length > 80) return erro(res, 400, 'Informe um nome de até 80 letras');
+  if (!['origem', 'destino', 'ambos'].includes(tipo)) return erro(res, 400, 'Tipo deve ser origem, destino ou ambos');
+  if (!num(lat) || Math.abs(lat) > 90 || !num(lon) || Math.abs(lon) > 180) return erro(res, 400, 'Coordenada inválida');
+  const doc = { usuarioId: req.usuarioId, nome: nome.trim(), tipo, lat, lon, cidade: texto(cidade) ? cidade.trim() : null, uf: texto(uf) ? uf.trim() : null, criadoEm: new Date() };
+  doc._id = (await db.collection('locais').insertOne(doc)).insertedId;
+  res.status(201).json(localDto(doc));
+}));
+
+app.delete('/locais/:id', auth, wrap(async (req, res) => {
+  const o = oid(req.params.id);
+  const r = o && await db.collection('locais').deleteOne({ _id: o, usuarioId: req.usuarioId });
+  r?.deletedCount ? res.json({ mensagem: 'Local removido' }) : erro(res, 404, 'Local não encontrado');
+}));
+
 app.post('/upload', auth, upload.single('foto'), wrap(async (req, res) => {
   if (!req.file) return erro(res, 400, 'Envie a imagem na parte "foto"');
   if (!req.file.mimetype.startsWith('image/')) return erro(res, 400, 'O arquivo precisa ser uma imagem');
@@ -240,6 +297,7 @@ app.use((_, res) => erro(res, 404, 'Rota não encontrada'));
   await db.collection('usuarios').createIndex({ email: 1 }, { unique: true });
   await db.collection('plantios').createIndex({ usuarioId: 1 });
   await db.collection('fretes').createIndex({ plantioId: 1 });
+  await db.collection('locais').createIndex({ usuarioId: 1 });
   await db.collection('precos').createIndex({ cultura: 1, data: 1 }, { unique: true });
   await db.collection('producao').createIndex({ cultura: 1, nivel: 1 }, { unique: true });
   await db.collection('pracas').createIndex({ nome: 1 }, { unique: true });
