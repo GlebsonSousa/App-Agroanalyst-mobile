@@ -252,7 +252,7 @@ passo("Frete rodoviário calculado por rota", esperar_rolando("Distância por ro
 passo("Frete mostra frete total", achar_rolando("Frete total") is not None)
 foto("08_frete_resultado")
 if tocar("Ver rota no mapa", exato=True):
-    passo("Mapa abre com a rota real", esperar("Distância por rota:", 60))
+    passo("Mapa abre com a rota real", esperar("Por rota:", 60))
     passo("Mapa mostra o trecho rodoviário", tem("Rodovia"))
     time.sleep(8)
     foto("09_mapa_rodovia")
@@ -290,7 +290,7 @@ foto("12_frete_ferroviario_form")
 tocar("Calcular", exato=True, ultimo=True)
 passo("Frete ferroviário por trajeto real", esperar_rolando("Distância por rota", 120))
 if tocar("Ver rota no mapa", exato=True):
-    passo("Mapa: rota ferroviária tem trecho de ferrovia", esperar("Ferrovia", 60) and tem("Distância por rota:"))
+    passo("Mapa: rota ferroviária tem trecho de ferrovia", esperar("Ferrovia", 60) and tem("Por rota:"))
     time.sleep(8)
     foto("13_mapa_ferrovia_real")
 

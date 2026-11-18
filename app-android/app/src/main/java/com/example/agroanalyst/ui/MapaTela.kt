@@ -43,7 +43,7 @@ fun MapaTela(vm: MapaViewModel, logado: Boolean, aoCalcularFrete: (PracaDto, Pra
             ChipCultura("Produção", vm.producaoLigada, vm::alternarProducao, Role.Checkbox)
             ChipCultura("Logística", vm.logisticaLigada, vm::alternarLogistica, Role.Checkbox)
         }
-        if (vm.producaoLigada) LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (vm.producaoLigada && !(vm.logisticaLigada && vm.origem != null)) LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(CULTURAS, key = { it.first }) { (id, rotulo) -> ChipCultura(rotulo, id == vm.cultura, { vm.selecionarCultura(id) }) }
         }
         Box(Modifier.weight(1f).fillMaxWidth().clipToBounds()) {

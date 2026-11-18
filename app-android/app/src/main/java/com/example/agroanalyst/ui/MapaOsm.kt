@@ -101,7 +101,7 @@ fun MapaOsm(
                 uf.aneis.forEach { anel ->
                     mapa.overlays.add(Polygon().apply {
                         points = anel.map { (lon, lat) -> GeoPoint(lat, lon) }
-                        fillPaint.color = cor.copy(alpha = 0.8f).toArgb()
+                        fillPaint.color = cor.copy(alpha = if (rota != null) 0.35f else 0.8f).toArgb()
                         outlinePaint.color = CorAndroid.WHITE
                         outlinePaint.strokeWidth = densidade
                         setOnClickListener { _, _, _ -> aoTocarUf(uf.codigo); true }
@@ -118,6 +118,12 @@ fun MapaOsm(
                 }
                 rota?.pernas.orEmpty().forEach { perna ->
                     val pontos = perna.pontos.orEmpty().mapNotNull { if (it.size >= 2) GeoPoint(it[1], it[0]) else null }
+                    if (pontos.size >= 2) mapa.overlays.add(Polyline().apply {
+                        setPoints(pontos)
+                        outlinePaint.color = CorAndroid.WHITE
+                        outlinePaint.strokeWidth = 8f * densidade
+                        outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
+                    })
                     if (pontos.size >= 2) mapa.overlays.add(Polyline().apply {
                         setPoints(pontos)
                         outlinePaint.color = when (perna.tipo) { "ferrovia" -> corRotaFerrovia; "hidrovia" -> corRotaHidrovia; else -> corRota }.toArgb()
