@@ -68,51 +68,51 @@ fun MapaTela(vm: MapaViewModel, logado: Boolean, aoCalcularFrete: (PracaDto, Pra
                 style = MaterialTheme.typography.labelSmall
             )
             Column(Modifier.align(Alignment.TopStart).padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (vm.producaoLigada && numeros.isNotEmpty()) Column(
+                if (vm.producaoLigada && numeros.isNotEmpty() && vm.rota == null) Column(
                     Modifier.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f), MaterialTheme.shapes.medium).padding(8.dp)
                 ) {
                     Text("$nomeCultura · ${vm.producao.firstOrNull()?.ano ?: ""}", style = MaterialTheme.typography.labelMedium)
                     Legenda(cores.zip(rotulosFaixas(cortes, numeros.max())))
                     Text("Fonte: IBGE/SIDRA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                if (vm.logisticaLigada) Column(
+                if (vm.logisticaLigada && vm.rota != null) Column(
                     Modifier.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f), MaterialTheme.shapes.medium).padding(8.dp)
                 ) {
-                    Text("Trajetos", style = MaterialTheme.typography.labelMedium)
                     Legenda(listOf(corRota to "Rodovia", corFerroRota to "Ferrovia", corHidroRota to "Hidrovia"))
                     Text("Fonte: IBGE, OSRM", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            Column(Modifier.align(Alignment.BottomCenter).padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (vm.logisticaLigada) CartaoInfo {
-                    val o = vm.origem; val d = vm.destino
-                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MODAIS.forEach { (id, rotulo) -> ChipCultura(rotulo, id == vm.modal, { vm.mudarModal(id) }) }
-                    }
-                    if (o == null) Text("Toque numa praça ou num local seu para escolher a origem.", style = MaterialTheme.typography.bodyMedium)
-                    else if (d == null) Text("Origem: ${o.nome}. Toque em outro ponto para o destino.", style = MaterialTheme.typography.bodyMedium)
-                    else {
-                        Text("${o.nome} → ${d.nome}", style = MaterialTheme.typography.titleMedium)
-                        if (vm.calculandoRota) Text("Calculando o trajeto real…", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        vm.avisoRota?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error) }
-                        vm.rota?.let { r ->
-                            Text("Distância por rota: ${(r.distanciaKm ?: 0.0).formatar(0)} km", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                r.pernas.orEmpty().joinToString(" · ") { "${nomeDaPerna(it.tipo)} ${(it.km ?: 0.0).formatar(0)} km" },
-                                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        BotaoPrincipal("Calcular frete", { aoCalcularFrete(o, d, vm.modal) })
-                    }
-                    if (o != null) TextButton(colors = CoresTexto, onClick = vm::limparRota, modifier = Modifier.heightIn(min = 48.dp)) { Text("Limpar rota") }
+        }
+        Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (vm.logisticaLigada) CartaoInfo {
+                val o = vm.origem; val d = vm.destino
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MODAIS.forEach { (id, rotulo) -> ChipCultura(rotulo, id == vm.modal, { vm.mudarModal(id) }) }
                 }
-                vm.ufSelecionada?.let { u ->
-                    CartaoInfo(titulo = "${u.uf} · $nomeCultura · ${u.ano}") {
-                        Text("Valor: ${((u.valorProducao ?: 0.0) / 1000).formatar(0)} mi R$ · Quantidade: ${(u.quantidade ?: 0.0).formatar(0)} t", style = MaterialTheme.typography.bodyMedium)
-                        Text("Área: ${(u.area ?: 0.0).formatar(0)} ha · Rendimento: ${(u.rendimento ?: 0.0).formatar(0)} kg/ha", style = MaterialTheme.typography.bodyMedium)
-                        TextButton(colors = CoresTexto, onClick = vm::fecharUf, modifier = Modifier.heightIn(min = 48.dp)) { Text("Fechar") }
+                if (o == null) Text("Toque numa praça ou num local seu para escolher a origem.", style = MaterialTheme.typography.bodyMedium)
+                else if (d == null) Text("Origem: ${o.nome}. Toque em outro ponto para o destino.", style = MaterialTheme.typography.bodyMedium)
+                else {
+                    Text("${o.nome} → ${d.nome}", style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                    if (vm.calculandoRota) Text("Calculando o trajeto real…", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    vm.avisoRota?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error) }
+                    vm.rota?.let { r ->
+                        Text(
+                            "Por rota: ${(r.distanciaKm ?: 0.0).formatar(0)} km · " + r.pernas.orEmpty().joinToString(" + ") { "${nomeDaPerna(it.tipo)} ${(it.km ?: 0.0).formatar(0)}" },
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        BotaoPrincipal("Calcular frete", { aoCalcularFrete(o, d, vm.modal) }, Modifier.weight(1f))
+                        TextButton(colors = CoresTexto, onClick = vm::limparRota, modifier = Modifier.heightIn(min = 48.dp)) { Text("Limpar rota") }
+                    }
+                }
+                if (o != null && d == null) TextButton(colors = CoresTexto, onClick = vm::limparRota, modifier = Modifier.heightIn(min = 48.dp)) { Text("Limpar rota") }
+            }
+            if (vm.producaoLigada) vm.ufSelecionada?.let { u ->
+                CartaoInfo(titulo = "${u.uf} · $nomeCultura · ${u.ano}") {
+                    Text("Valor: ${((u.valorProducao ?: 0.0) / 1000).formatar(0)} mi R$ · Quantidade: ${(u.quantidade ?: 0.0).formatar(0)} t", style = MaterialTheme.typography.bodyMedium)
+                    Text("Área: ${(u.area ?: 0.0).formatar(0)} ha · Rendimento: ${(u.rendimento ?: 0.0).formatar(0)} kg/ha", style = MaterialTheme.typography.bodyMedium)
+                    TextButton(colors = CoresTexto, onClick = vm::fecharUf, modifier = Modifier.heightIn(min = 48.dp)) { Text("Fechar") }
                 }
             }
         }

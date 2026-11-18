@@ -3,6 +3,7 @@ package com.example.agroanalyst.ui
 import android.graphics.Color as CorAndroid
 import android.graphics.drawable.GradientDrawable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -62,6 +63,7 @@ fun MapaOsm(
     aoTocarPraca: (PracaDto) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val foco = remember { arrayOfNulls<Any>(1) }
     val chave = listOf(
         ufs.size, producao.hashCode(), cortes, mostrarProducao, mostrarLogistica,
         pracas.size, locais.size, linhas?.size, origem?.nome, destino?.nome, rota?.hashCode()
@@ -148,6 +150,13 @@ fun MapaOsm(
                         setOnMarkerClickListener { m, v -> InfoWindow.closeAllInfoWindowsOn(v); m.showInfoWindow(); true }
                     })
                 }
+            }
+            val alvo = rota?.pernas.orEmpty().flatMap { it.pontos.orEmpty() }.mapNotNull { if (it.size >= 2) GeoPoint(it[1], it[0]) else null }
+                .ifEmpty { listOfNotNull(origem, destino).map { GeoPoint(it.lat ?: 0.0, it.lon ?: 0.0) } }
+            if (mostrarLogistica && alvo.size >= 2 && foco[0] != chave) {
+                foco[0] = chave
+                val margem = (40 * densidade).toInt()
+                mapa.post { mapa.zoomToBoundingBox(BoundingBox.fromGeoPoints(alvo), true, margem) }
             }
             mapa.invalidate()
         },

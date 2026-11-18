@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
@@ -42,7 +43,14 @@ fun rememberPosicionador(aoPosicao: (Double, Double) -> Unit): Posicionador {
         val ultima = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
             .mapNotNull { fonte -> try { gerente?.getLastKnownLocation(fonte) } catch (e: Exception) { null } }
             .maxByOrNull { it.time }
-        if (ultima != null) { aviso = null; aoPosicaoAtual(ultima.latitude, ultima.longitude) } else semPosicao()
+        if (ultima != null) { aviso = null; aoPosicaoAtual(ultima.latitude, ultima.longitude); return }
+        val fonte = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER).firstOrNull { f -> try { gerente?.isProviderEnabled(f) == true } catch (e: Exception) { false } }
+        if (gerente == null || fonte == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) { semPosicao(); return }
+        try {
+            gerente.getCurrentLocation(fonte, null, ContextCompat.getMainExecutor(context)) { loc ->
+                if (loc != null) { aviso = null; aoPosicaoAtual(loc.latitude, loc.longitude) } else semPosicao()
+            }
+        } catch (e: SecurityException) { semPosicao() }
     }
 
     fun buscar() {

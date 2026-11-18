@@ -21,7 +21,7 @@ def nos():
         if not b:
             continue
         l, t, r, bt = map(int, b.groups())
-        saida.append({"texto": n.get("text", ""), "desc": n.get("content-desc", ""), "x": (l + r) // 2, "y": (t + bt) // 2})
+        saida.append({"texto": n.get("text", ""), "desc": n.get("content-desc", ""), "x": (l + r) // 2, "y": (t + bt) // 2, "clic": n.get("clickable", ""), "classe": n.get("class", "")})
     return saida
 
 
@@ -114,6 +114,21 @@ def foto(nome):
     dados = subprocess.run(["adb", "exec-out", "screencap", "-p"], capture_output=True).stdout
     with open(f"shots/{nome}.png", "wb") as f:
         f.write(dados)
+
+
+def escolher_modal(rotulo):
+    for tentativa in range(3):
+        n = achar_rolando(rotulo, True)
+        if not n:
+            return False
+        print(f"   modal {rotulo}: tentativa {tentativa + 1}, no={n}", flush=True)
+        adb("shell", "input", "tap", str(n["x"]), str(n["y"]))
+        time.sleep(2)
+        if rotulo != "Rodoviário" and not tem("Capacidade do caminhão (t)"):
+            return True
+        if rotulo == "Rodoviário":
+            return True
+    return False
 
 
 def esperar_rolando(sub, segundos=60, exato=False):
@@ -220,7 +235,7 @@ if tocar("Talhao E2E", exato=True):
         passo("Edição abre com os dados", esperar("Editar plantio", 20, exato=True) and esperar("Talhao E2E", 20))
         campo("Nome do plantio", "X")
         tocar("Salvar", exato=True, ultimo=True)
-        passo("Edição salva e detalhe mostra o novo nome", esperar("Talhao E2EX", 40))
+        passo("Edição salva e detalhe mostra o novo nome", esperar("TalhaoX E2E", 40))
     else:
         passo("Edição abre com os dados", False)
 
@@ -263,13 +278,14 @@ tocar("Rondonópolis, MT", exato=True)
 passo("Frete: partida escolhida aparece no quadro", esperar("Rondonópolis, MT", 10))
 if tocar("Salvar em meus locais", exato=True):
     tocar("Nome do local", exato=True, rolando=False)
+    adb("shell", "input", "keyevent", "123")
     digitar("Partida E2E")
     tocar("Salvar", exato=True, ultimo=True, rolando=False)
     passo("Local salvo em meus locais", esperar_rolando("Partida E2E", 40))
 tocar("Porto de Santos", exato=False)
 campo("Sacas de 60 kg", "3000")
 campo("Preço por saca", "128.4")
-tocar("Ferroviário", exato=True)
+passo("Frete: escolher o modal ferroviário", escolher_modal("Ferroviário"))
 foto("12_frete_ferroviario_form")
 tocar("Calcular", exato=True, ultimo=True)
 passo("Frete ferroviário por trajeto real", esperar_rolando("Distância por rota", 120))
@@ -281,16 +297,16 @@ if tocar("Ver rota no mapa", exato=True):
 # ---------------------------------------------------------------- limpeza
 aba("Início")
 tocar("Calcular frete", exato=True)
-if tocar("Remover Partida E2E", desc=True):
+if tocar("Partida E2E", desc=True):
     time.sleep(3)
     passo("Local removido", not tem("Partida E2E"))
 voltar()
 aba("Meus")
-esperar("Talhao E2E", 40)
-if tocar("Excluir plantio Talhao E2E", desc=True):
+esperar("TalhaoX E2E", 40)
+if tocar("Excluir plantio TalhaoX E2E", desc=True):
     tocar("Excluir", exato=True, ultimo=True, rolando=False)
     time.sleep(3)
-    passo("Plantio excluído", not tem("Talhao E2E"))
+    passo("Plantio excluído", not tem("TalhaoX E2E"))
 
 total = len(resultados)
 print(f"RESUMO: {sum(resultados)}/{total} passos", flush=True)
