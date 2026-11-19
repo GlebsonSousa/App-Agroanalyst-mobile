@@ -3,6 +3,17 @@
 Autor: Glebson Sousa
 Demais integrantes:
 
+Código no GitHub: https://github.com/GlebsonSousa/App-Agroanalyst-mobile
+Baixar o app (APK): https://app-agroanalyst-mobile.onrender.com/download
+
+## Para o professor: instalar o app em um minuto
+
+1. No celular Android, abra o link https://app-agroanalyst-mobile.onrender.com/download no navegador.
+2. Baixe o arquivo e, se o Android pedir, permita "instalar apps desconhecidos" para o navegador.
+3. Abra o app. Para entrar na conta, use `teste@fatec.br` / `123456` (o app também funciona sem login).
+
+Na primeira abertura o servidor gratuito pode levar até um minuto para acordar; o app avisa e mostra os últimos dados salvos enquanto isso. O código completo, com o histórico de commits, está no link do GitHub acima.
+
 ## 1. O que o app faz e como funciona
 
 O AgroAnalyst Mobile é um app Android nativo que reúne, em um só lugar, preços de grãos, clima, produção agrícola por estado, análise de solo por coordenada e cálculo de frete. É o braço móvel do AgroAnalyst (site de análise de solo e recomendação de culturas) e da aba AgroLogística (regras de frete e praças de escoamento).
