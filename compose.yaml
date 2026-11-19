@@ -1,0 +1,30 @@
+# Valores apenas para desenvolvimento local. Nada aqui é de produção.
+services:
+  mongo:
+    image: mongo:7
+    container_name: agro-mongo
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./api
+    image: agroanalyst-api:local
+    container_name: agro-api
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/agroanalyst
+      JWT_SECRET: troque-este-segredo-em-producao
+      PORT: 3000
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
