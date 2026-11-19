@@ -1,0 +1,73 @@
+name: Teste de desempenho
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desempenho:
+    name: Teste de desempenho (Artillery)
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Instalar dependências da API
+        working-directory: api
+        run: npm ci
+      - name: Subir a API em segundo plano
+        working-directory: api
+        env:
+          MONGODB_URI: mongodb://localhost:27017/agroanalyst
+          JWT_SECRET: segredo-de-exemplo-para-teste
+          PORT: 3000
+        run: nohup node server.js > api.log 2>&1 &
+      - name: Esperar a API responder
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/ > /dev/null; then
+              echo "API no ar"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "A API não respondeu"
+          cat api/api.log
+          exit 1
+      - name: Instalar o Artillery
+        working-directory: perf
+        run: npm ci
+      - name: Rodar o teste de desempenho
+        working-directory: perf
+        run: npm run test:performance
+      - name: Analisar o resultado
+        working-directory: perf
+        run: node analyze-performance.js
+      - name: Guardar o relatório
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: relatorio-desempenho
+          path: perf/report.json
+          if-no-files-found: ignore
