@@ -1,9 +1,13 @@
-name: Diagnostico
+name: Teste de aceitação (emulador Android)
 
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/diagnostico.yml', '.github/diag.sh', '.github/e2e.py']
+    paths: ['app-android/**', '.github/workflows/diagnostico.yml', '.github/diag.sh', '.github/e2e.py']
+  pull_request:
+    branches: [main]
+    paths: ['app-android/**', '.github/workflows/diagnostico.yml', '.github/diag.sh', '.github/e2e.py']
+  workflow_dispatch:
 
 jobs:
   emulador:
