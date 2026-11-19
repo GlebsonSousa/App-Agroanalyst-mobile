@@ -1,0 +1,11 @@
+{
+  "name": "agroanalyst-perf",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:performance": "artillery run --output report.json artillery-config.yml"
+  },
+  "devDependencies": {
+    "artillery": "2.0.34"
+  }
+}
