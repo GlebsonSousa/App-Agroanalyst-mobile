@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   api-testes:
@@ -71,12 +71,26 @@ jobs:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v4
 
+      - name: Gerar as tags da imagem
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGEM }}
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+
       - name: Build da imagem
         uses: docker/build-push-action@v7
         with:
           context: ./api
           load: true
           tags: agroanalyst-api:ci
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -110,26 +124,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Gerar as tags da imagem
+      - name: Publicar a imagem testada
         if: github.event_name == 'push'
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.IMAGEM }}
-          tags: |
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-
-      - name: Publicar a imagem
-        if: github.event_name == 'push'
-        uses: docker/build-push-action@v7
-        with:
-          context: ./api
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
+        run: |
+          while read -r tag; do
+            [ -z "$tag" ] && continue
+            docker tag agroanalyst-api:ci "$tag"
+            docker push "$tag"
+          done <<< "${{ steps.meta.outputs.tags }}"
