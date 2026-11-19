@@ -8,7 +8,7 @@ const base = { sacas: 500, kgPorSaca: 60, precoSaca: 100, mes: 0 };
 test('rodoviario cobra pedagio proporcional a distancia', () => {
   const r = calcularFrete(PARAMETROS_PADRAO, { ...base, modal: 'rodoviario', distanciaKm: 200, capacidadeT: 30, kmPorLitro: 2.5, eixos: 5 });
   assert.strictEqual(r.viagens, 1);
-  assert.strictEqual(r.freteTotal, 1500);
+  assert.strictEqual(r.freteTotal, 1540);
   assert.strictEqual(r.fretePorSaca, 3.08);
 });
 
