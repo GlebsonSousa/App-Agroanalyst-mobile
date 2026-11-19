@@ -3,44 +3,60 @@
 Autor: Glebson Sousa
 Demais integrantes:
 
-## 1. O que o app faz
+## 1. O que o app faz e como funciona
 
-App Android nativo que reúne, em um só lugar, preços de grãos, clima, produção agrícola por estado, análise de solo por coordenada e cálculo de frete. É o braço móvel do AgroAnalyst (site de análise de solo, que fornece o solo e a recomendação de culturas pelo meteoserver) e da aba AgroLogística (regras de frete e praças de escoamento, calculadas na API própria).
+O AgroAnalyst Mobile é um app Android nativo que reúne, em um só lugar, preços de grãos, clima, produção agrícola por estado, análise de solo por coordenada e cálculo de frete. É o braço móvel do AgroAnalyst (site de análise de solo e recomendação de culturas) e da aba AgroLogística (regras de frete e praças de escoamento).
 
-## 2. Sem conta e com conta
+**Como funciona, em ordem de uso**
 
-O app abre público: Início, Mercado, Mapa, Análise de solo e o simulador de Frete funcionam sem login. A conta só é exigida para o que pertence ao usuário: plantios, fotos de plantio e fretes salvos. O login aparece quando necessário (aba "Meus", "Salvar no plantio", "Salvar frete") e devolve o usuário para onde ele estava.
+1. **Abrir.** O app abre direto na Início, sem login. Os cartões de preço, o clima e o mapa de produção aparecem na hora com o último retrato dos dados embutido no app e são atualizados pela API assim que ela responde.
+2. **Explorar o mercado.** Em *Mercado* e na Início o usuário vê preço, variação, fonte e histórico de soja, milho, café, algodão e trigo. A cultura escolhida governa o mapa de produção, o gráfico e o ranking de municípios.
+3. **Ver o mapa.** Em *Mapa* há duas camadas: **Produção** (os 27 estados coloridos por faixa de produção) e **Logística** (ferrovias, hidrovias, praças e terminais). Tocando em dois pontos o app desenha o trajeto real por rodovia, ferrovia ou hidrovia e mostra a distância.
+4. **Analisar um local.** Em *Análise* o usuário escolhe o ponto por busca de cidade (com sugestões enquanto digita), pelo GPS ou por latitude e longitude. O app mostra tipo de solo, pH, textura, drenagem, fertilidade, chuva de 12 meses e as culturas recomendadas.
+5. **Simular frete.** Em *Frete* o usuário escolhe partida e destino (cidade, coordenadas, praça, plantio ou "meus locais"), o grão, as sacas e o modal. O app calcula o custo pela regra do AgroLogística usando a distância do trajeto real.
+6. **Entrar para guardar.** A conta só é exigida para o que pertence ao usuário: plantios (com foto), fretes salvos e "meus locais". O login aparece quando necessário e devolve o usuário para onde ele estava.
 
-## 3. API
+**Quem fala com quem**
+
+```
+App Android (Kotlin, Compose, Material 3)
+   │  Retrofit + Gson, token JWT no cabeçalho só nas rotas privadas
+   ▼
+API própria (Node 20 + Express, na Render)  ──►  MongoDB Atlas (usuários, plantios, fretes, locais, fotos em GridFS, cache)
+   │
+   ├──► CEPEA/ESALQ ........ preços (coleta a cada 6 h)
+   ├──► IBGE (SIDRA, malhas, BC250) ... produção, estados, ferrovias e hidrovias
+   ├──► Open-Meteo ......... clima e busca de cidades
+   ├──► OSRM ............... trajeto rodoviário
+   └──► meteoserver ........ solo, chuva e recomendação de culturas (resultado guardado por ponto)
+```
+
+O app fala só com a API própria. Ela concentra as fontes externas, guarda cache e aplica as regras de frete, para o celular não depender de cada serviço.
+
+## 2. API publicada
 
 Endereço: https://app-agroanalyst-mobile.onrender.com
 
 O servidor gratuito da Render hiberna depois de 15 minutos sem uso: **a primeira chamada pode levar até um minuto**. O app mostra "Acordando o servidor…" depois de 5 segundos e a Início aparece na hora com os últimos dados salvos.
 
-## 4. Baixar o APK
-
-https://app-agroanalyst-mobile.onrender.com/download
-
-Abra no navegador do celular Android, baixe, permita "instalar apps desconhecidos" e instale.
-
-## 5. Usuário de teste
+## 3. Usuário de teste (já cadastrado)
 
 E-mail: `teste@fatec.br`
 Senha: `123456`
 
-## 6. Como rodar no Android Studio
+## 4. Baixar ou rodar o app
 
-1. Abrir a pasta `app-android/` no Android Studio.
-2. Aguardar o Gradle Sync.
-3. Executar em um emulador com API 24 ou superior (ou em um aparelho).
+- **Sem instalar nada no computador:** abra https://app-agroanalyst-mobile.onrender.com/download no navegador do celular Android, baixe o APK, permita "instalar apps desconhecidos" e instale. A rota entrega sempre o APK mais recente da última release do repositório.
+- **Pelo Android Studio:** 1. abrir a pasta `app-android/`; 2. aguardar o Gradle Sync; 3. executar em emulador com API 24 ou superior (ou em um aparelho).
 
-## 7. Como apontar para uma API local
+## 5. Como apontar para uma API local
 
 - `app-android/app/src/main/java/com/example/agroanalyst/data/ApiClient.kt`: trocar `BASE_URL` por `http://10.0.2.2:3000/`.
 - `AndroidManifest.xml`: acrescentar `android:usesCleartextTraffic="true"` na tag `<application>`.
 - API: `cd api`, `npm install`, criar `.env` com `MONGODB_URI` e `JWT_SECRET` (modelo em `.env.example`) e `npm start`. Testes: `npm test`.
 
-## 8. Tela por tela
+## 6. Tela por tela
+
 
 | Tela | O que dá para fazer |
 |---|---|
@@ -54,7 +70,84 @@ Senha: `123456`
 | Meus (plantios) | Lista, novo plantio com foto opcional e local por busca de cidade, editar, excluir. |
 | Detalhe do plantio | Dados, foto, solo do ponto, fretes salvos, abrir no app de mapas, compartilhar. |
 
-## 9. Fontes dos dados
+## 7. Funcionalidades contra o conteúdo da disciplina
+
+| Conteúdo | Onde está no código (`app-android/.../agroanalyst/`) |
+|---|---|
+| `@Composable`, `Text`, `Button`, `OutlinedTextField`, `Column`, `Row`, `Modifier`, `Box` | `ui/LoginTela.kt`, `ui/CadastroUsuarioTela.kt` e todas as telas |
+| `remember` com `mutableStateOf`, recomposição | Campos dos formulários (`LoginTela`, `PlantioFormTela`, `FreteTela`) |
+| Lambdas em `onClick` / `onValueChange` | Todos os controles |
+| Componente reutilizável com state hoisting | `CampoTexto(valor, aoMudar, rotulo)` em `ui/Componentes.kt` (não guarda estado) |
+| `data class` para dados | `data/Modelos.kt` |
+| `LazyColumn` com `items` e `key` estável | `ui/PlantiosTela.kt`, `ui/MercadoTela.kt`, `ui/InicioTela.kt` |
+| Item componentizado (dados entram, eventos saem) | `PlantioItem(plantio, aoAbrir, aoExcluir)` em `ui/PlantiosTela.kt` |
+| `NavController`, `NavHost`, grafo de destinos | `AppAgro.kt` |
+| Rotas tipadas com `@Serializable` e `toRoute()` | `Rotas.kt` e `AppAgro.kt` |
+| Back stack: `navigate`, `popBackStack`, `popUpTo` | `AppAgro.kt` (login que devolve ao ponto de origem, abas com `popUpTo`) |
+| Telas não recebem `NavController`, só callbacks | Toda assinatura em `ui/` |
+| `ViewModel` com estado e operações; fluxo unidirecional | `viewmodel/` |
+| ViewModels criados acima do `NavHost` | `AppAgro.kt` (linhas iniciais) |
+| `suspend` e `viewModelScope.launch` | Toda chamada de rede, a partir de `OperacaoViewModel` |
+| Estado `carregando`, `try/finally`, `CancellationException` relançada | `viewmodel/OperacaoViewModel.kt` |
+| `LaunchedEffect` para carregar ao entrar na tela | `PlantiosTela`, `InicioTela` e outras |
+| `withContext(Dispatchers.IO)` | Leitura dos bytes da foto (`data/FotoUpload.kt`), semente e malha locais |
+| `async` / `await` em chamadas independentes | `viewmodel/InicioViewModel.kt` (preços, clima e cultura em paralelo) |
+| Interface Retrofit (`@GET`, `@POST`, `@PUT`, `@DELETE`, `@Path`, `@Query`, `@Body`) | `data/ApiAgro.kt` |
+| `Response<T>`, `isSuccessful`, `code()`, leitura do `errorBody` | `data/Repositorio.kt` |
+| `@SerializedName` do Gson | `data/Modelos.kt` (`solo_local`, `culturas_db`, `solo_preciso`) |
+| `Retrofit.Builder`, `baseUrl`, `GsonConverterFactory`, interceptor lendo o token a cada chamada | `data/ApiClient.kt` |
+| Cadastro, login, JWT, sair | `viewmodel/AuthViewModel.kt`, `data/Sessao.kt` |
+| CRUD completo de um recurso do usuário | Plantios (`PlantiosViewModel`, `PlantioFormTela`, `PlantioDetalheTela`) |
+| Upload multipart com a parte `foto` + GridFS | `data/FotoUpload.kt` e `POST /upload` na API |
+| Coil exibindo imagem vinda da API | `ui/PlantioDetalheTela.kt` |
+| Intent implícito `ACTION_VIEW` (app de mapas) e `ACTION_SEND` com `createChooser` (compartilhar) | `ui/Intents.kt` |
+| `uses-permission` e `uses-feature` | `AndroidManifest.xml` (INTERNET, localização; GPS não obrigatório) |
+| Permissão perigosa em tempo de execução | Botão "Usar minha posição" (`ui/Localizacao.kt`) |
+| Consumo de Content Provider | `data/FotoUpload.kt`: o Photo Picker devolve um `Uri`; `openInputStream`, `getType` e `query` (`OpenableColumns`) leem a foto **sem pedir permissão de armazenamento** |
+
+## 8. Guia do código
+
+**App (`app-android/app/src/main/java/com/example/agroanalyst/`)**
+
+| Pasta ou arquivo | Papel |
+|---|---|
+| `MainActivity.kt`, `AppAgro.kt`, `Rotas.kt` | Ponto de entrada, grafo de navegação, barra de abas e criação dos ViewModels |
+| `data/` | Rede e dados: `ApiAgro` (interface Retrofit), `ApiClient` (Retrofit, Gson, interceptor), `Repositorio` (chamadas, tentativas e mensagens de erro), `Sessao` (token em memória), `Modelos` (DTOs), `Semente` (dados embutidos para abrir sem rede), `MalhaLocal` (malha dos estados), `FotoUpload` |
+| `viewmodel/` | Estado e operações de cada área: `Inicio`, `Mercado`, `Mapa`, `Analise`, `Plantios`, `Frete`, `Auth`, `Busca` (cidades com sugestões) e `OperacaoViewModel` (executa uma operação com `carregando` e tratamento de erro) |
+| `ui/` | Telas e componentes Compose; `MapaOsm.kt` desenha o mapa (osmdroid), `SeletorLocal.kt` é o seletor de local reutilizado em Análise, Frete, Plantio e Início |
+| `ui/theme/` | Cores, tipografia e formas (Material 3). Telas usam `MaterialTheme`, sem cor fixa |
+| `res/raw/` | `semente.json`, `ufs.geojson`, `malha.json` (embutidos) |
+
+**API (`api/`)**
+
+| Arquivo | Papel |
+|---|---|
+| `server.js` | Rotas, autenticação JWT, upload GridFS, tarefas de fundo |
+| `cepea.js`, `sidra.js`, `clima.js`, `cidades.js` | Preços, produção, clima, busca de cidades |
+| `solo.js` | Consulta de solo ao meteoserver em segundo plano, com cache por ponto e resposta 202 enquanto não termina |
+| `rotas.js` e `data/malha.json` | Trajeto rodoviário (OSRM) e grafo de ferrovias e hidrovias do IBGE (Dijkstra) |
+| `frete.js`, `parametros.js` | Regra de frete e constantes (diesel, pedágio, transbordo, velocidades) |
+| `seed.js`, `scripts/` | Dados iniciais (praças, semente de preços) e geradores da semente e da malha |
+| `test/` | Testes automatizados (`npm test`): frete, parser do CEPEA e rotas |
+
+**Rotas da API**
+
+| Tipo | Rotas |
+|---|---|
+| Públicas | `GET /publico/precos`, `/publico/precos/:cultura/serie`, `/publico/producao`, `/publico/producao/top`, `/publico/clima`, `/publico/pracas`, `/publico/solo`, `/publico/cidades`, `/publico/rota`, `POST /publico/frete/calcular`, `GET /upload/:fileId`, `/download` |
+| Conta | `POST /usuarios/registrar`, `POST /usuarios/login` |
+| Privadas (Bearer JWT) | `GET/POST /plantios`, `GET/PUT/DELETE /plantios/:id`, `GET/POST /plantios/:id/fretes`, `GET/POST/DELETE /locais`, `POST /upload` |
+
+**Regra de frete** (mesma do AgroLogística): diesel R$ 6,00, pedágio R$ 8,00 por eixo a cada 100 km, custo fixo R$ 500, fator de rota 1,3 quando a distância é estimada, transbordo e velocidade por modal. Exemplo de conferência: 3.000 sacas e 1.420 km dão R$ 47.985,60 (coberto em `api/test/frete.test.js`).
+
+## 9. Como foi validado
+
+- API: `npm test` (11 testes) e chamadas de ponta a ponta em produção: cadastro, login, CRUD de plantios, upload e leitura de foto, erros 400, 401 e 404, busca de cidades, rotas dos três modais, frete, locais e consulta de solo (primeira lenta, seguintes instantâneas).
+- App: roteiro automatizado em emulador Android (API 34) com 42 passos, sem falha: Início e clima por cidade, Mercado, Mapa de produção, GPS, Análise por cidade, login, criar, editar e excluir plantio, frete rodoviário e ferroviário, rota no mapa, hidrovia indisponível, salvar e excluir local, e abertura do app sem rede. O roteiro está em `.github/e2e.py` e roda pelo fluxo `diagnostico.yml`.
+- O APK é gerado pelo GitHub Actions (`apk.yml`) a cada alteração e publicado na release mais recente.
+
+## 10. Fontes dos dados
+
 
 - Preços: CEPEA/ESALQ (indicadores de soja Paranaguá, milho, café arábica, algodão em pluma e trigo Paraná).
 - Produção agrícola: IBGE, Pesquisa Agrícola Municipal, via SIDRA.
@@ -65,7 +158,8 @@ Senha: `123456`
 - Mapa base: OpenStreetMap.
 - Solo, chuva e recomendação de culturas: meteoserver, consultado pela API própria, que guarda o resultado por ponto.
 
-## 10. Limitações assumidas
+## 11. Limitações assumidas
+
 
 - A distância do frete usa o trajeto real quando existe (rodovia pelo OSRM; ferrovia e hidrovia pela malha do IBGE, com acesso rodoviário até a malha). Sem trajeto para o par de locais, usa Haversine × 1,30 e a tela avisa que é estimada. O tempo do ferroviário e do hidroviário depende de parâmetros de velocidade e de terminal ainda a confirmar.
 - A primeira consulta de solo de um ponto é lenta (o meteoserver leva de 20 s a vários minutos); a API guarda o resultado e as consultas seguintes ao mesmo ponto são instantâneas.
