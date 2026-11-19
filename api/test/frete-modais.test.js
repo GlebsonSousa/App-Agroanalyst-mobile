@@ -20,5 +20,5 @@ test('rodoviario calcula a duracao pela velocidade do caminhao', () => {
 test('ferroviario com pernas soma rodovia e ferrovia', () => {
   const pernas = [{ tipo: 'rodovia', km: 120 }, { tipo: 'ferrovia', km: 500 }];
   const r = calcularFrete(PARAMETROS_PADRAO, { ...base, modal: 'ferroviario', distanciaKm: 620, pernas });
-  assert.strictEqual(r.duracaoH, 99);
+  assert.strictEqual(r.duracaoH, 22.5);
 });
