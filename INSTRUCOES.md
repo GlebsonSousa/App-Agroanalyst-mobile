@@ -1,6 +1,12 @@
 # AgroAnalyst Mobile: instruções de uso e funcionalidades
 
-Autor: Glebson Sousa
+Autores: 
+
+Glebson Sousa de Almeida
+André de Abreu rocha
+Breno Mario Correa
+Tulio de Sousa Meira
+Gabriele Pereira da Cruz Arantes
 
 Código no GitHub: https://github.com/GlebsonSousa/App-Agroanalyst-mobile
 Baixar o app (APK): https://app-agroanalyst-mobile.onrender.com/download
