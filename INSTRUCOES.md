@@ -1,7 +1,6 @@
 # AgroAnalyst Mobile: instruções de uso e funcionalidades
 
 Autor: Glebson Sousa
-Demais integrantes:
 
 ## 1. O que o app faz e como funciona
 
